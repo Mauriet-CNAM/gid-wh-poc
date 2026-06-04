@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Wooden Home — Portail intranet GID-WH</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css"/>
+<style>
+:root{--wh-green:#1B3A2D;--wh-green2:#2D5A42;--wh-amber:#C07B1B;--sp:#0078D4;--bg:#F3F2F1;--text:#323130;--text2:#605e5c;--text3:#979593;--border:#edebe9;--font:'Segoe UI',system-ui,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--font);background:var(--bg);color:var(--text)}
+input,select,button,textarea{font-family:var(--font)}
+.nb{background:none;border:none;cursor:pointer;display:flex;align-items:center}
+.pill{border-radius:2px;padding:2px 8px;font-size:11px;display:inline-block;white-space:nowrap}
+.card{background:#fff;border:1px solid var(--border);border-radius:2px}
+.hov:hover{background:#f3f2f1;cursor:pointer}
+.sp-suite{height:48px;background:#292827;display:flex;align-items:center;padding:0 12px;gap:4px;position:sticky;top:0;z-index:300}
+.sp-header{background:var(--wh-green);color:white;padding:0 20px;height:50px;display:flex;align-items:center;gap:14px;position:sticky;top:48px;z-index:100}
+.sp-nav{background:white;border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:44px;position:sticky;top:98px;z-index:100;overflow-x:auto;gap:2px}
+.sp-ni{padding:0 12px;height:44px;display:flex;align-items:center;font-size:13px;cursor:pointer;border-bottom:3px solid transparent;color:#323130;white-space:nowrap;gap:5px}
+.sp-ni:hover{background:#f3f2f1}.sp-ni.on{color:#0078D4;border-bottom-color:#0078D4;font-weight:600}
+.tab-bar{display:flex;gap:2px;padding:6px 16px;background:white;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tab-btn{padding:5px 10px;font-size:12px;border:none;background:none;cursor:pointer;border-radius:2px;color:#605e5c;display:flex;align-items:center;gap:4px}
+.tab-btn.on{background:#e1dfdd;color:#323130;font-weight:600}.tab-btn:hover{background:#f3f2f1}
+.filter-bar{background:white;border-bottom:1px solid var(--border);padding:7px 16px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.fi{padding:5px 8px;font-size:12px;border:1px solid var(--border);border-radius:2px;background:white;color:#323130}
+.lh{display:grid;font-size:11px;color:#605e5c;font-weight:600;padding:7px 14px;background:#F3F2F1;border-bottom:1px solid var(--border)}
+.lr{display:grid;font-size:12px;padding:7px 14px;align-items:center;border-bottom:1px solid var(--border);background:white}
+.lr:hover{background:#f3f2f1;cursor:pointer}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:80px}
+.modal{background:white;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2);max-height:80vh;display:flex;flex-direction:column}
+.alert-box{padding:9px 12px;border-radius:2px;display:flex;gap:8px;align-items:flex-start;font-size:12px}
+.btn{display:flex;align-items:center;gap:5px;padding:5px 10px;font-size:12px;border:none;border-radius:2px;cursor:pointer;font-family:var(--font)}
+.btn-prim{background:#0078D4;color:white}.btn-prim:hover{background:#006CBE}
+.btn-sec{background:white;border:1px solid var(--border);color:#323130}.btn-sec:hover{background:#f3f2f1}
+.btn-warn{background:#C07B1B;color:white}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.search-wrap{display:flex;gap:6px;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:2px;background:white}
+.search-wrap input{border:none;outline:none;background:transparent;font-size:12px;width:100%;color:#323130}
+.taux-bar{background:#edebe9;border-radius:3px;overflow:hidden}
+.taux-fill{height:100%;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useMemo,useEffect,useRef,useCallback}=React;
+// ── HELPERS ──
+const AVC=['#0F5BA1','#1A7A4A','#C07B1B','#7B3FA0','#C03626','#1A6B8A','#8B4513','#4A8B2A'];
+const avc=id=>AVC[id%AVC.length];
+const ini=(p,n)=>((p||'')[0]||'?'+((n||'')[0]||'?')).toUpperCase();
+const sc={lille:'#0F5BA1',dax:'#C07B1B',annecy:'#C03626',brest:'#1A7A4A',macon:'#7B3FA0'};
+const sb={lille:'#E8F2FB',dax:'#FDF3E3',annecy:'#FDECEA',brest:'#E8F5EE',macon:'#F5EEF8'};
+// ── SITES (données CdCF réelles) ──
+const SITES=[
+  {id:'lille',code:'LIL',name:'Lille',sub:'Siège social & production',region:'Hauts-de-France',adresse:'3, forêt des pins',cp:'59800',ville:'Lille',tel:'03.20.32.33.34',statut:'Actif',nb_collabs:158,x:170,y:24,svcs:['Direction Générale','DAF / Finance','Service RH','Service Comptabilité','Service Juridique','Service Administratif','Service Informatique (DSI)','BU Particuliers','BU Collectivités','BU Maisons Modulaires','Magasins','Production Particuliers','Service Achat','Production Collectivités','Service Qualité','Installation Particuliers','Service Après-vente','Installation Collectivités','Service Stocks','Service Logistique',"Service Bureau d'Études"]},
+  {id:'dax',code:'DAX',name:'Dax',sub:'Site de production & vente',region:'Nouvelle-Aquitaine',adresse:'Zone industrielle des Landes, Route de la Forêt',cp:'40100',ville:'Dax',tel:'05.58.74.12.34',statut:'Actif',nb_collabs:77,x:93,y:236,svcs:['Direction de production','Production Particuliers','Production Collectivités','Service Qualité','Service Stocks','Service Logistique','Magasins','BU Particuliers','BU Collectivités',"Service Bureau d'Études"]},
+  {id:'annecy',code:'ANN',name:'Annecy',sub:'Site de production & vente',region:'Auvergne-Rhône-Alpes',adresse:'Zone industrielle Argonay, Route des Métiers',cp:'74370',ville:'Argonay',tel:'04.50.27.45.67',statut:'Actif',nb_collabs:82,x:227,y:172,svcs:['Direction de production','Production Particuliers','BU Maisons Modulaires','Service Qualité','Service Stocks','Service Logistique','Magasins','BU Particuliers',"Service Bureau d'Études"]},
+  {id:'brest',code:'BRE',name:'Brest',sub:'Magasin',region:'Bretagne',adresse:'Zone commerciale de la Cavale Blanche',cp:'29200',ville:'Brest',tel:'02.98.03.21.45',statut:'Actif',nb_collabs:20,x:31,y:95,svcs:['Magasins']},
+  {id:'macon',code:'MAC',name:'Mâcon',sub:'Magasin',region:'Bourgogne-Franche-Comté',adresse:'Zone commerciale de la Croix-Blanche',cp:'71000',ville:'Mâcon',tel:'03.85.21.34.56',statut:'Actif',nb_collabs:21,x:203,y:157,svcs:['Magasins']},
+];
+// ── SERVICES (CdCF organigramme p.13) ──
+const DIRECTIONS=[
+  {id:'DG',label:'Direction Générale',svcs:['Direction Générale']},
+  {id:'RHRH',label:'Direction RH – AF – Informatique',svcs:['DAF / Finance','Service RH','Service Comptabilité','Service Juridique','Service Administratif','Service Informatique (DSI)']},
+  {id:'COM',label:'Direction Commerciale',svcs:['BU Particuliers','BU Collectivités','BU Maisons Modulaires','Magasins']},
+  {id:'PROD',label:'Direction de production',svcs:['Production Particuliers','Service Achat','Production Collectivités','Service Qualité','Installation Particuliers','Service Après-vente','Installation Collectivités','Service Stocks','Installation Maisons Modulaires','Service Logistique',"Service Bureau d'Études"]},
+];
+// ── COLLABORATEURS (données réelles CdCF) ──
+const EMP=[
+  // DIRECTION / MANAGEMENT
+  {id:1,n:'GENS',p:'Patrick',post:'PDG',svc:'Direction Générale',dir:'DG',site:'lille',profil:'P02',mail:'p.gens@woodenhome.fr',tel:'03.20.32.00.01',mobile:'06.10.00.00.01',statut:'Actif',taux_libre:80,ext:false,
+   sk:[{lib:'Management stratégique',cat:'M'},{lib:'Leadership et management équipe',cat:'S'}]},
+  {id:2,n:'GRIGNON',p:'Thomas',post:'Directeur Général',svc:'Direction Générale',dir:'DG',site:'lille',profil:'P02',mail:'t.grignon@woodenhome.fr',tel:'03.20.32.00.02',mobile:'06.10.00.00.02',statut:'Actif',taux_libre:75,ext:false,
+   sk:[{lib:'Management stratégique',cat:'M'},{lib:'Gestion financière & contrôle',cat:'T'}]},
+  {id:3,n:'PAGNOUX',p:'Yohan',post:'Directeur Administratif & Financier (Sponsor GID-WH)',svc:'DAF / Finance',dir:'RHRH',site:'lille',profil:'P02',mail:'y.pagnoux@woodenhome.fr',tel:'03.20.21.22.23',mobile:'06.10.00.00.03',statut:'Actif',taux_libre:60,ext:false,
+   sk:[{lib:'Gestion financière & contrôle',cat:'T'},{lib:'Leadership et management équipe',cat:'S'}]},
+  {id:4,n:'CARLOT',p:'Patrick',post:'DSI / Chef de projet MOA GID-WH',svc:'Service Informatique (DSI)',dir:'RHRH',site:'lille',profil:'P04',mail:'p.carlot@woodenhome.fr',tel:'03.20.24.25.26',mobile:'06.10.00.00.04',statut:'Actif',taux_libre:10,ext:false,
+   sk:[{lib:'Droit & conformité RGPD',cat:'T'},{lib:'Gestion de projet chantier',cat:'M'},{lib:'Excel / outils bureautiques',cat:'S'}]},
+  {id:5,n:'CLERC',p:'Jérôme',post:'Consultant technique MOA DSI',svc:'Service Informatique (DSI)',dir:'RHRH',site:'lille',profil:'P04',mail:'j.clerc@woodenhome.fr',tel:'03.20.27.28.29',mobile:'06.10.00.00.05',statut:'Actif',taux_libre:30,ext:false,
+   sk:[{lib:'CAO / BIM / AutoCAD',cat:'T'},{lib:'Bureau d\'études & dessin technique',cat:'T'}]},
+  {id:6,n:'PARENT',p:'Julie',post:'Tech Lead DSI',svc:'Service Informatique (DSI)',dir:'RHRH',site:'lille',profil:'P04',mail:'j.parent@woodenhome.fr',tel:'03.20.27.28.30',mobile:'06.10.00.00.06',statut:'Actif',taux_libre:20,ext:false,
+   sk:[{lib:'CAO / BIM / AutoCAD',cat:'T'},{lib:'Excel / outils bureautiques',cat:'S'}]},
+  // PRODUCTION LILLE
+  {id:7,n:'DUMONT',p:'André',post:"Chef d'atelier",svc:'Production Particuliers',dir:'PROD',site:'lille',profil:'P01',mail:'a.dumont@woodenhome.fr',tel:'03.20.32.01.10',mobile:'06.11.00.00.10',statut:'Actif',taux_libre:15,ext:false,
+   sk:[{lib:'Assemblage et fabrication bois',cat:'T'},{lib:'Habilitation électrique B1V',cat:'R'},{lib:'Leadership et management équipe',cat:'S'}]},
+  {id:8,n:'MARTIN',p:'Sophie',post:'Responsable Qualité',svc:'Service Qualité',dir:'PROD',site:'lille',profil:'P02',mail:'s.martin@woodenhome.fr',tel:'03.20.32.01.11',mobile:'06.11.00.00.11',statut:'Actif',taux_libre:40,ext:false,
+   sk:[{lib:'Certification NF HQE',cat:'R'},{lib:'Gestion de projet chantier',cat:'M'}]},
+  {id:9,n:'LECLERC',p:'Marie',post:'Logisticienne',svc:'Service Logistique',dir:'PROD',site:'lille',profil:'P01',mail:'m.leclerc@woodenhome.fr',tel:'03.20.32.01.12',mobile:'06.11.00.00.12',statut:'Actif',taux_libre:50,ext:false,
+   sk:[{lib:'Logistique et gestion de stocks',cat:'T'},{lib:'CACES (cariste / nacelle)',cat:'R'}]},
+  {id:10,n:'BERNARD',p:'Luc',post:'Technicien nomade',svc:'Installation Particuliers',dir:'PROD',site:'lille',profil:'P01',mail:'l.bernard@woodenhome.fr',tel:'03.20.32.01.13',mobile:'06.11.00.00.13',statut:'Actif',taux_libre:25,ext:false,
+   sk:[{lib:'Assemblage et fabrication bois',cat:'T'},{lib:'Construction bois massif',cat:'T'},{lib:'Habilitation électrique B1V',cat:'R'}]},
+  // PRODUCTION DAX
+  {id:11,n:'CAZAUX',p:'Pierre',post:'Directeur de production – Dax',svc:'Production Collectivités',dir:'PROD',site:'dax',profil:'P02',mail:'p.cazaux@woodenhome.fr',tel:'05.58.74.01.01',mobile:'06.12.00.00.01',statut:'Actif',taux_libre:35,ext:false,
+   sk:[{lib:'Construction bois massif',cat:'T'},{lib:'Assemblage et fabrication bois',cat:'T'},{lib:'Leadership et management équipe',cat:'S'}]},
+  {id:12,n:'BORDES',p:'Julien',post:"Chef d'atelier",svc:'Production Particuliers',dir:'PROD',site:'dax',profil:'P01',mail:'j.bordes@woodenhome.fr',tel:'05.58.74.01.02',mobile:'06.12.00.00.02',statut:'Actif',taux_libre:20,ext:false,
+   sk:[{lib:'Assemblage et fabrication bois',cat:'T'},{lib:'Charpente & ossature bois',cat:'T'},{lib:'Habilitation électrique B1V',cat:'R'}]},
+  {id:13,n:'LARROUTURE',p:'Anne',post:'Responsable Logistique',svc:'Service Logistique',dir:'PROD',site:'dax',profil:'P02',mail:'a.larrouture@woodenhome.fr',tel:'05.58.74.01.03',mobile:'06.12.00.00.03',statut:'Actif',taux_libre:45,ext:false,
+   sk:[{lib:'Logistique et gestion de stocks',cat:'T'},{lib:'CACES (cariste / nacelle)',cat:'R'},{lib:'Gestion de la relation client',cat:'S'}]},
+  {id:14,n:'LAVIGNE',p:'Isabelle',post:'Ingénieure Qualité',svc:'Service Qualité',dir:'PROD',site:'dax',profil:'P01',mail:'i.lavigne@woodenhome.fr',tel:'05.58.74.01.04',mobile:'06.12.00.00.04',statut:'Actif',taux_libre:60,ext:false,
+   sk:[{lib:'Certification NF HQE',cat:'R'},{lib:'Gestion de projet chantier',cat:'M'}]},
+  // ANNECY
+  {id:15,n:'PELLEGRINI',p:'Antoine',post:'Ingénieur Bureau d\'études',svc:"Service Bureau d'Études",dir:'PROD',site:'annecy',profil:'P01',mail:'a.pellegrini@woodenhome.fr',tel:'04.50.27.01.01',mobile:'06.13.00.00.01',statut:'Actif',taux_libre:30,ext:false,
+   sk:[{lib:'CAO / BIM / AutoCAD',cat:'T'},{lib:'Bureau d\'études & dessin technique',cat:'T'},{lib:'Maisons modulaires écologiques',cat:'Métier'}]},
+  {id:16,n:'BOUTIN',p:'Marc',post:'Technicien installation chef',svc:'Installation Particuliers',dir:'PROD',site:'annecy',profil:'P01',mail:'m.boutin@woodenhome.fr',tel:'04.50.27.01.02',mobile:'06.13.00.00.02',statut:'Actif',taux_libre:0,ext:false,
+   sk:[{lib:'Assemblage et fabrication bois',cat:'T'},{lib:'Construction bois massif',cat:'T'},{lib:'Habilitation électrique B1V',cat:'R'},{lib:'CACES (cariste / nacelle)',cat:'R'}]},
+  {id:17,n:'VIGNON',p:'Antoine',post:'Technicien atelier',svc:'Production Particuliers',dir:'PROD',site:'annecy',profil:'P01',mail:'a.vignon@woodenhome.fr',tel:'04.50.27.01.03',mobile:'06.13.00.00.03',statut:'Actif',taux_libre:50,ext:false,
+   sk:[{lib:'Assemblage et fabrication bois',cat:'T'},{lib:'Charpente & ossature bois',cat:'T'}]},
+  {id:18,n:'FAVRE',p:'Marie',post:"Responsable commerciale BU Maisons Modulaires",svc:'BU Maisons Modulaires',dir:'COM',site:'annecy',profil:'P01',mail:'m.favre@woodenhome.fr',tel:'04.50.27.01.04',mobile:'06.13.00.00.04',statut:'Actif',taux_libre:65,ext:false,
+   sk:[{lib:'Techniques de vente',cat:'Métier'},{lib:'Maisons modulaires écologiques',cat:'Métier'},{lib:'Gestion de la relation client',cat:'S'}]},
+  // BREST
+  {id:19,n:'LE GOFF',p:'Yann',post:'Responsable Magasin Brest',svc:'Magasins',dir:'COM',site:'brest',profil:'P02',mail:'y.legoff@woodenhome.fr',tel:'02.98.03.01.01',mobile:'06.14.00.00.01',statut:'Actif',taux_libre:70,ext:false,
+   sk:[{lib:'Techniques de vente',cat:'Métier'},{lib:'Gestion de la relation client',cat:'S'},{lib:'Leadership et management équipe',cat:'S'}]},
+  {id:20,n:'KERVELLA',p:'Soazig',post:'Conseillère de vente',svc:'Magasins',dir:'COM',site:'brest',profil:'P01',mail:'s.kervella@woodenhome.fr',tel:'02.98.03.01.02',mobile:'06.14.00.00.02',statut:'Actif',taux_libre:80,ext:false,
+   sk:[{lib:'Techniques de vente',cat:'Métier'},{lib:'Gestion de la relation client',cat:'S'}]},
+  // MÂCON
+  {id:21,n:'RICHARD',p:'Laurent',post:'Responsable Magasin Mâcon',svc:'Magasins',dir:'COM',site:'macon',profil:'P02',mail:'l.richard@woodenhome.fr',tel:'03.85.21.01.01',mobile:'06.15.00.00.01',statut:'Actif',taux_libre:55,ext:false,
+   sk:[{lib:'Techniques de vente',cat:'Métier'},{lib:'Gestion de la relation client',cat:'S'},{lib:'Leadership et management équipe',cat:'S'}]},
+  {id:22,n:'BLANC',p:'Nathalie',post:'Conseillère de vente',svc:'Magasins',dir:'COM',site:'macon',profil:'P01',mail:'n.blanc@woodenhome.fr',tel:'03.85.21.01.02',mobile:'06.15.00.00.02',statut:'Actif',taux_libre:85,ext:false,
+   sk:[{lib:'Techniques de vente',cat:'Métier'},{lib:'Excel / outils bureautiques',cat:'S'}]},
+  // COMMERCIAL LILLE
+  {id:23,n:'LEROY',p:'Marc',post:'Directeur Commercial',svc:'BU Particuliers',dir:'COM',site:'lille',profil:'P02',mail:'m.leroy@woodenhome.fr',tel:'03.20.32.02.01',mobile:'06.16.00.00.01',statut:'Actif',taux_libre:50,ext:false,
+   sk:[{lib:'Techniques de vente',cat:'Métier'},{lib:'Gestion de la relation client',cat:'S'},{lib:'Leadership et management équipe',cat:'S'}]},
+  // NEXIA (prestataires)
+  {id:31,n:'GONZALEZ FIGUEROA',p:'Mauriet',post:'Chef de projet GID-WH (Nexia)',svc:'Mission GID-WH',dir:'RHRH',site:'lille',profil:'P04',mail:'m.gonzalez@nexiadataconsulting.fr',tel:'—',mobile:'—',statut:'Mission',taux_libre:0,ext:true,company:'Nexia Data Consulting',
+   sk:[{lib:'Gestion de projet chantier',cat:'M'},{lib:'CAO / BIM / AutoCAD',cat:'T'}]},
+  {id:32,n:'LACOTTE',p:'Foulques',post:'Assistant chef de projet (Nexia)',svc:'Mission GID-WH',dir:'RHRH',site:'lille',profil:'P04',mail:'f.lacotte@nexiadataconsulting.fr',tel:'—',mobile:'—',statut:'Mission',taux_libre:0,ext:true,company:'Nexia Data Consulting',
+   sk:[{lib:'Gestion de projet chantier',cat:'M'}]},
+  {id:33,n:'SECK',p:'Ndella',post:'Architecte documentaire (Nexia)',svc:'Mission GID-WH',dir:'RHRH',site:'lille',profil:'P03',mail:'n.seck@nexiadataconsulting.fr',tel:'—',mobile:'—',statut:'Mission',taux_libre:10,ext:true,company:'Nexia Data Consulting',
+   sk:[{lib:'Droit & conformité RGPD',cat:'T'}]},
+  {id:34,n:'DIEME',p:'Aba',post:'Expert RGPD & Sécurité (Nexia)',svc:'Mission GID-WH',dir:'RHRH',site:'lille',profil:'P05',mail:'a.dieme@nexiadataconsulting.fr',tel:'—',mobile:'—',statut:'Mission',taux_libre:20,ext:true,company:'Nexia Data Consulting',
+   sk:[{lib:'Droit & conformité RGPD',cat:'T'}]},
+  {id:35,n:'SMAIL',p:'Dihya',post:'Conduite du changement (Nexia)',svc:'Mission GID-WH',dir:'RHRH',site:'lille',profil:'P06',mail:'d.smail@nexiadataconsulting.fr',tel:'—',mobile:'—',statut:'Mission',taux_libre:20,ext:true,company:'Nexia Data Consulting',
+   sk:[{lib:'Communication client',cat:'S'}]},
+];
+// ── PROJETS (basés sur image 3 + données CdCF) ──
+const PROJECTS=[
+  {id:'CMD-2026-001',ref:'CMD-2026-001',label:'Résidences Bois Les Pins',type:'commande_client',famille:'Maisons modulaires',site:'annecy',client:'SCI Les Pins',statut:'En cours',pct:75,budget:980000,depense:735000,debut:'15/01/2026',fin:'30/06/2026',
+   desc:'Construction de 6 résidences bois modulaires écologiques à ossature bois. Projet phare du site d\'Annecy.',
+   comp_requises:['Assemblage et fabrication bois','Construction bois massif','Maisons modulaires écologiques','Gestion de projet chantier','Habilitation électrique B1V'],
+   team:[{empId:16,role:'Technicien installation chef',taux:100,lieu:'Lyon',intersite:true,debut:'15/01/2026',fin:'30/04/2026'},{empId:17,role:'Supervision atelier',taux:50,lieu:'Annecy + Lyon',intersite:false,debut:'20/01/2026',fin:'30/04/2026'},{empId:15,role:'Bureau d\'études',taux:40,lieu:'Annecy',intersite:false,debut:'15/01/2026',fin:'30/06/2026'}]},
+  {id:'CMD-2026-002',ref:'CMD-2026-002',label:'Chalets Collectifs Grenoble',type:'commande_client',famille:'Collectivités',site:'dax',client:'Mairie de Grenoble',statut:'En cours',pct:55,budget:450000,depense:247500,debut:'01/02/2026',fin:'30/09/2026',
+   desc:'Fourniture et installation de 8 chalets collectifs en bois massif pour le parc municipal.',
+   comp_requises:['Assemblage et fabrication bois','Charpente & ossature bois','Logistique et gestion de stocks','CACES (cariste / nacelle)'],
+   team:[{empId:11,role:'Directeur chantier',taux:30,lieu:'Grenoble',intersite:true,debut:'01/02/2026',fin:'30/09/2026'},{empId:12,role:"Chef d'équipe atelier",taux:80,lieu:'Dax + Grenoble',intersite:true,debut:'01/02/2026',fin:'30/09/2026'},{empId:13,role:'Logistique & transport',taux:40,lieu:'Dax',intersite:false,debut:'15/03/2026',fin:'31/08/2026'}]},
+  {id:'CMD-2026-003',ref:'CMD-2026-003',label:'Maison Modulaire Dupont',type:'commande_client',famille:'Particuliers',site:'annecy',client:'M. Dupont (particulier)',statut:'Planifié',pct:0,budget:185000,depense:0,debut:'01/05/2026',fin:'30/11/2026',
+   desc:'Construction d\'une maison modulaire en bois de 120m² sur-mesure avec performance énergétique BBC.',
+   comp_requises:['Maisons modulaires écologiques','Construction bois massif','Bureau d\'études & dessin technique','Certification NF HQE'],
+   team:[]},
+  {id:'CMD-2026-004',ref:'CMD-2026-004',label:'Réfection Entrepôt ZI Jouandin',type:'projet_interne',famille:'Collectivités',site:'dax',client:'Wooden Home (interne)',statut:'En cours',pct:90,budget:62000,depense:55800,debut:'15/03/2026',fin:'31/05/2026',
+   desc:'Réfection complète de la toiture et isolation de l\'entrepôt principal du site de Dax.',
+   comp_requises:['Assemblage et fabrication bois','Logistique et gestion de stocks','Habilitation électrique B1V'],
+   team:[{empId:12,role:'Responsable travaux',taux:60,lieu:'Dax',intersite:false,debut:'15/03/2026',fin:'31/05/2026'}]},
+  {id:'CMD-2026-005',ref:'CMD-2026-005',label:'Extension Ateliers Lille',type:'projet_interne',famille:'Particuliers',site:'lille',client:'Wooden Home (interne)',statut:'Planifié',pct:0,budget:320000,depense:0,debut:'01/06/2026',fin:'30/11/2026',
+   desc:'Extension de 800m² des ateliers de production Lille avec nouvelle ligne d\'assemblage modulaire.',
+   comp_requises:['Construction bois massif','Charpente & ossature bois','Habilitation électrique B1V','Habilitation nacelle CACES R486'],
+   team:[]},
+  {id:'CMD-2026-006',ref:'CMD-2026-006',label:'Chalets Touristiques Savoie',type:'commande_client',famille:'Collectivités',site:'annecy',client:'Club Alpin Savoie',statut:'Planifié',pct:0,budget:280000,depense:0,debut:'01/07/2026',fin:'31/12/2026',
+   desc:'Construction de 4 chalets touristiques haute montagne pour refuges du Club Alpin.',
+   comp_requises:['Construction bois massif','Assemblage et fabrication bois','CAO / BIM / AutoCAD','Gestion de projet chantier'],
+   team:[]},
+  {id:'CMD-2026-007',ref:'CMD-2026-007',label:'Rénovation Magasin Brest',type:'maintenance',famille:'Particuliers',site:'brest',client:'Wooden Home (interne)',statut:'Planifié',pct:0,budget:45000,depense:0,debut:'01/08/2026',fin:'31/10/2026',
+   desc:'Rénovation et mise aux normes ERP du magasin de Brest — nouvelle vitrine bois et espace d\'exposition.',
+   comp_requises:['Assemblage et fabrication bois'],
+   team:[]},
+  {id:'GID-WH-001',ref:'GID-WH-001',label:'GID-WH — Gouvernance Documentaire',type:'projet_interne',famille:'IT / Transversal',site:'lille',client:'DSI Wooden Home',statut:'En cours',pct:40,budget:300000,depense:67250,debut:'09/06/2026',fin:'09/12/2026',
+   desc:'Refonte complète de la gouvernance de l\'information documentaire. Lots 1, 2, 3 (POC Annuaire). Prestataire : Nexia Data Consulting.',
+   comp_requises:['Droit & conformité RGPD','Gestion de projet chantier','Excel / outils bureautiques'],
+   team:[{empId:4,role:'Chef de projet MOA',taux:80,lieu:'Lille',intersite:false,debut:'09/06/2026',fin:'09/12/2026'},{empId:5,role:'Consultant technique',taux:50,lieu:'Lille',intersite:false,debut:'09/06/2026',fin:'09/12/2026'},{empId:31,role:'Chef de projet prestataire',taux:100,lieu:'Lille',intersite:false,debut:'09/06/2026',fin:'09/12/2026'}]},
+];
+// ── RÉFÉRENTIEL COMPÉTENCES (basé sur image 2 + CdCF) ──
+const TODAY=new Date('2026-05-22');
+const diffJ=(dateStr)=>{if(!dateStr) return null;const[d,m,y]=dateStr.split('/');const dt=new Date(y,m-1,d);return Math.round((dt-TODAY)/(1000*60*60*24));};
+const COMP_REF=[
+  {id:1,lib:'Assemblage et fabrication bois',cat:'T',cat_label:'Technique',expire:null,niv:{pratique:30,maitrise:90,expertise:50},nb_collabs:170},
+  {id:2,lib:'Gestion de projet chantier',cat:'M',cat_label:'Management',expire:null,niv:{pratique:20,maitrise:35,expertise:18},nb_collabs:73},
+  {id:3,lib:'Techniques de vente',cat:'MET',cat_label:'Métier',expire:null,niv:{pratique:40,maitrise:45,expertise:25},nb_collabs:110},
+  {id:4,lib:'Logistique et gestion de stocks',cat:'T',cat_label:'Technique',expire:null,niv:{pratique:15,maitrise:25,expertise:10},nb_collabs:50},
+  {id:5,lib:'CAO / BIM / AutoCAD',cat:'T',cat_label:'Technique',expire:null,niv:{pratique:5,maitrise:8,expertise:4},nb_collabs:17},
+  {id:6,lib:'Habilitation électrique B1V',cat:'R',cat_label:'Réglementaire',expire:'15/05/2026',niv:{pratique:20,maitrise:40,expertise:25},nb_collabs:85},
+  {id:7,lib:'CACES (cariste / nacelle)',cat:'R',cat_label:'Réglementaire',expire:'03/05/2026',niv:{pratique:15,maitrise:20,expertise:9},nb_collabs:44},
+  {id:8,lib:'Certification NF HQE',cat:'R',cat_label:'Réglementaire',expire:null,niv:{pratique:5,maitrise:7,expertise:3},nb_collabs:15},
+  {id:9,lib:'Gestion de la relation client',cat:'S',cat_label:'Soft Skills',expire:null,niv:{pratique:30,maitrise:42,expertise:25},nb_collabs:97},
+  {id:10,lib:'Leadership et management équipe',cat:'S',cat_label:'Soft Skills',expire:null,niv:{pratique:12,maitrise:20,expertise:9},nb_collabs:41},
+  {id:11,lib:'Construction bois massif',cat:'T',cat_label:'Technique',expire:null,niv:{pratique:25,maitrise:50,expertise:30},nb_collabs:105},
+  {id:12,lib:'Charpente & ossature bois',cat:'T',cat_label:'Technique',expire:null,niv:{pratique:20,maitrise:45,expertise:25},nb_collabs:90},
+  {id:13,lib:'Maisons modulaires écologiques',cat:'MET',cat_label:'Métier',expire:null,niv:{pratique:10,maitrise:20,expertise:8},nb_collabs:38},
+  {id:14,lib:'Habilitation nacelle CACES R486',cat:'R',cat_label:'Réglementaire',expire:'30/09/2026',niv:{pratique:10,maitrise:25,expertise:10},nb_collabs:45},
+  {id:15,lib:'Communication client',cat:'S',cat_label:'Soft Skills',expire:null,niv:{pratique:25,maitrise:40,expertise:20},nb_collabs:85},
+  {id:16,lib:"Bureau d'études & dessin technique",cat:'T',cat_label:'Technique',expire:null,niv:{pratique:3,maitrise:8,expertise:6},nb_collabs:17},
+  {id:17,lib:'Gestion financière & contrôle',cat:'T',cat_label:'Technique',expire:null,niv:{pratique:2,maitrise:3,expertise:2},nb_collabs:7},
+  {id:18,lib:'Droit & conformité RGPD',cat:'T',cat_label:'Technique',expire:null,niv:{pratique:1,maitrise:2,expertise:1},nb_collabs:4},
+  {id:19,lib:'Anglais professionnel',cat:'S',cat_label:'Soft Skills',expire:null,niv:{pratique:30,maitrise:20,expertise:10},nb_collabs:60},
+  {id:20,lib:'Excel / outils bureautiques',cat:'S',cat_label:'Soft Skills',expire:null,niv:{pratique:50,maitrise:60,expertise:20},nb_collabs:130},
+];
+const METIERS=[
+  {id:1,lib:'Ouvrier / Opérateur atelier',fam:'Production',nb:50,sites:['lille','dax','annecy']},
+  {id:2,lib:'Technicien nomade installation',fam:'Production',nb:55,sites:['lille','dax','annecy']},
+  {id:3,lib:"Chef d'atelier",fam:'Production',nb:3,sites:['lille','dax','annecy']},
+  {id:4,lib:'Ingénieur R&D',fam:"Bureau d'études",nb:7,sites:['lille','dax','annecy']},
+  {id:5,lib:'Ingénieur qualité',fam:'Qualité',nb:3,sites:['lille','dax','annecy']},
+  {id:6,lib:'Logisticien',fam:'Logistique',nb:5,sites:['lille','dax','annecy']},
+  {id:7,lib:'Cariste',fam:'Logistique',nb:9,sites:['lille','dax','annecy']},
+  {id:8,lib:'Magasinier',fam:'Logistique',nb:9,sites:['lille','dax','annecy']},
+  {id:9,lib:'Agent de transit',fam:'Logistique',nb:6,sites:['lille','dax','annecy']},
+  {id:10,lib:'Commercial / Vendeur',fam:'Commercial',nb:45,sites:['lille','dax','annecy']},
+  {id:11,lib:'Employé point de vente',fam:'Commercial',nb:100,sites:['lille','dax','annecy','brest','macon']},
+  {id:12,lib:'Responsable commercial',fam:'Commercial',nb:4,sites:['lille','dax','annecy']},
+  {id:13,lib:'Assistant(e) direction',fam:'Support',nb:9,sites:['lille','dax','annecy']},
+  {id:14,lib:'Comptable',fam:'Finance',nb:3,sites:['lille']},
+  {id:15,lib:'Juriste / Chargé(e) de missions',fam:'Juridique',nb:2,sites:['lille']},
+  {id:16,lib:'Développeur / Ingénieur système',fam:'DSI',nb:4,sites:['lille']},
+  {id:17,lib:'Acheteur',fam:'Achats',nb:6,sites:['lille']},
+  {id:18,lib:'Technicien prise d\'appel',fam:'SAV',nb:5,sites:['lille']},
+  {id:19,lib:'Responsable formation',fam:'RH',nb:1,sites:['lille']},
+  {id:20,lib:'Contrôleur de gestion',fam:'Finance',nb:1,sites:['lille']},
+];
+const FAM_C={'Particuliers':'#8B4513','Collectivités':'#1A7A4A','Maisons modulaires':'#7B3FA0','IT / Transversal':'#0F5BA1','projet_interne':'#605e5c','commande_client':'#1A6B8A','maintenance':'#C07B1B'};
+const FAM_IC={'Particuliers':'ti-home','Collectivités':'ti-building-community','Maisons modulaires':'ti-home-eco','IT / Transversal':'ti-cpu'};
+const CAT_C={T:'#0F5BA1',M:'#7B3FA0',MET:'#C07B1B',R:'#C03626',S:'#1A7A4A'};
+const CAT_B={T:'#E8F2FB',M:'#F5EEF8',MET:'#FDF3E3',R:'#FDECEA',S:'#E8F5EE'};
+const PROF={P01:{l:'Collaborateur',c:'#605e5c',bg:'#F3F2F1'},P02:{l:'Manager',c:'#1A7A4A',bg:'#E8F5EE'},P03:{l:'Admin RH',c:'#0F5BA1',bg:'#E8F2FB'},P04:{l:'Admin IT',c:'#7B3FA0',bg:'#F5EEF8'},P05:{l:'Réf. RGPD',c:'#C07B1B',bg:'#FDF3E3'},P06:{l:'Consultant ext.',c:'#8B4513',bg:'#F5EEE8'}};
+// ── UTILITAIRES ──
+function Av({p,n,id,size=32,ext=false,statut='Actif'}){
+  const op=(statut!=='Actif'&&statut!=='Mission')?0.55:1;
+  return(<div style={{position:'relative',flexShrink:0}}>
+    <div style={{width:size,height:size,borderRadius:'50%',background:ext?'#8B6914':avc(id),display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*.34,fontWeight:600,color:'#fff',border:ext?'2px dashed #C07B1B':'none',opacity:op}}>{((p||'')[0]||'')}{((n||'')[0]||'')}</div>
+    {ext&&<div style={{position:'absolute',bottom:-2,right:-2,width:9,height:9,borderRadius:'50%',background:'#C07B1B',border:'1.5px solid #fff'}}/>}
+  </div>);
+}
+function StatBadge({statut}){
+  const m={'Actif':['#E8F5EE','#1A7A4A'],'En cours':['#E8F5EE','#1A7A4A'],'Planifié':['#E8F2FB','#0F5BA1'],'Mission':['#FDF3E3','#8B5E00'],'Terminé':['#F3F2F1','#605e5c']};
+  const[bg,c]=m[statut]||['#F3F2F1','#605e5c'];
+  return <span className="pill" style={{background:bg,color:c}}>{statut}</span>;
+}
+function Taux({v,h=6,color='auto'}){
+  const c=color==='auto'?(v>60?'#1A7A4A':v>30?'#C07B1B':'#C03626'):color;
+  return(<div style={{display:'flex',gap:5,alignItems:'center'}}>
+    <div className="taux-bar" style={{flex:1,height:h}}><div className="taux-fill" style={{width:v+'%',background:c,height:h}}/></div>
+    <span style={{fontSize:9,color:c,minWidth:22}}>{v}%</span>
+  </div>);
+}
+function SBar({value,onChange,ph='Rechercher...',w='100%'}){
+  return(<div className="search-wrap" style={{width:w}}>
+    <i className="ti ti-search" style={{fontSize:12,color:'#979593',flexShrink:0}}></i>
+    <input value={value} onChange={e=>onChange(e.target.value)} placeholder={ph}/>
+    {value&&<span onClick={()=>onChange('')} style={{cursor:'pointer',color:'#979593',fontSize:11}}>✕</span>}
+  </div>);
+}
+function Sel({v,onChange,opts}){
+  return(<select value={v} onChange={e=>onChange(e.target.value)} className="fi">
+    {opts.map(([val,lbl])=><option key={val} value={val}>{lbl}</option>)}
+  </select>);
+}
+
+// ── SHELL ──
+function SuiteBar({onSearch}){
+  return(<div className="sp-suite">
+    <button className="nb" style={{width:36,height:36,padding:8,color:'white',borderRadius:2}}>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="white"><rect x="0" y="0" width="5" height="5"/><rect x="6.5" y="0" width="5" height="5"/><rect x="13" y="0" width="5" height="5"/><rect x="0" y="6.5" width="5" height="5"/><rect x="6.5" y="6.5" width="5" height="5"/><rect x="13" y="6.5" width="5" height="5"/><rect x="0" y="13" width="5" height="5"/><rect x="6.5" y="13" width="5" height="5"/><rect x="13" y="13" width="5" height="5"/></svg>
+    </button>
+    <span style={{color:'white',fontSize:13,fontWeight:300,marginRight:8}}>Microsoft <strong>365</strong></span>
+    <span style={{color:'rgba(255,255,255,0.4)',marginRight:4}}>›</span>
+    <span style={{color:'white',fontSize:13}}>SharePoint — Wooden Home</span>
+    <div style={{flex:1}}/>
+    <div onClick={onSearch} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 14px',background:'rgba(255,255,255,.1)',border:'1px solid rgba(255,255,255,.2)',borderRadius:2,cursor:'pointer',minWidth:300,color:'rgba(255,255,255,.6)',fontSize:12}}>
+      <i className="ti ti-search" style={{fontSize:13,color:'rgba(255,255,255,.7)'}}></i>
+      <span>Recherche globale (⌘K)</span>
+    </div>
+    <div style={{flex:1}}/>
+    <span style={{fontSize:10,padding:'3px 9px',borderRadius:2,background:'rgba(255,255,255,.15)',color:'rgba(255,255,255,.9)',display:'flex',alignItems:'center',gap:3}}>
+      <i className="ti ti-shield-check" style={{fontSize:10}}></i>Entra ID SSO
+    </span>
+    <div style={{width:32,height:32,borderRadius:'50%',background:'#0067b8',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'white',marginLeft:8}}>A</div>
+  </div>);
+}
+function Header(){
+  return(<div className="sp-header">
+    <div style={{width:36,height:36,borderRadius:4,background:'#C07B1B',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <i className="ti ti-trees" style={{fontSize:20,color:'white'}}></i>
+    </div>
+    <div>
+      <p style={{fontSize:16,fontWeight:600,color:'white'}}>Wooden Home</p>
+      <p style={{fontSize:10,color:'rgba(255,255,255,.65)'}}>Portail intranet · GID-WH · Particuliers · Collectivités · Maisons modulaires</p>
+    </div>
+    <div style={{flex:1}}/>
+    <span style={{fontSize:10,padding:'3px 8px',background:'rgba(255,255,255,.12)',color:'rgba(255,255,255,.8)',borderRadius:2}}>📍 Siège : 3, forêt des pins – 59800 Lille | 03.20.32.33.34</span>
+  </div>);
+}
+function Nav({pg,setPg}){
+  const nav=[{id:'home',l:'Accueil',ic:'ti-home-2'},{id:'ged',l:'GED Documents',ic:'ti-files'},{id:'annuaire',l:'Annuaire',ic:'ti-users'},{id:'projets',l:'Projets',ic:'ti-layout-kanban'},{id:'planning',l:'Planning & Affectations',ic:'ti-calendar-stats'},{id:'equipes',l:'Sites & Équipes',ic:'ti-building'}];
+  return(<div className="sp-nav">{nav.map(n=><div key={n.id} className={'sp-ni'+(pg===n.id?' on':'')} onClick={()=>setPg(n.id)}><i className={'ti '+n.ic} style={{fontSize:13}}></i>{n.l}</div>)}</div>);
+}
+
+// ── LOGIN PAGE (Entra ID) ──
+function LoginPage({onLogin}){
+  const [email,setEmail]=useState('');
+  const [pwd,setPwd]=useState('');
+  const [err,setErr]=useState('');
+  const [step,setStep]=useState(1);
+  const submit=()=>{
+    if(step===1){if(!email.includes('@'))setErr('Adresse email invalide');else{setErr('');setStep(2);}}
+    else{if(!pwd){setErr('Mot de passe requis');return;}onLogin();}
+  };
+  return(<div style={{minHeight:'100vh',background:'linear-gradient(135deg,#1B3A2D 0%,#0078D4 100%)',display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
+    <div style={{background:'white',borderRadius:3,padding:'40px 36px',width:420,boxShadow:'0 8px 40px rgba(0,0,0,.2)'}}>
+      <div style={{textAlign:'center',marginBottom:24}}>
+        <div style={{width:52,height:52,borderRadius:8,background:'linear-gradient(135deg,#1B3A2D,#0078D4)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}>
+          <i className="ti ti-trees" style={{fontSize:26,color:'white'}}></i>
+        </div>
+        <h1 style={{fontSize:20,fontWeight:600,color:'#323130'}}>Wooden Home</h1>
+        <p style={{fontSize:11,color:'#605e5c',marginTop:2}}>Portail intranet — GID-WH</p>
+      </div>
+      <div style={{padding:'12px 14px',borderRadius:2,background:'#E8F2FB',border:'1px solid #0078D430',marginBottom:20,display:'flex',gap:8}}>
+        <i className="ti ti-shield-lock" style={{fontSize:18,color:'#0078D4',flexShrink:0}}></i>
+        <div><p style={{fontSize:11,fontWeight:600,color:'#0078D4'}}>Microsoft Entra ID</p><p style={{fontSize:10,color:'#605e5c'}}>Authentification SSO Wooden Home · M365</p></div>
+      </div>
+      {step===1&&(<>
+        <p style={{fontSize:12,color:'#605e5c',marginBottom:6}}>Adresse e-mail</p>
+        <input value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="prenom.nom@woodenhome.fr" style={{width:'100%',padding:'10px 12px',border:'1px solid #edebe9',borderRadius:2,fontSize:13,outline:'none',marginBottom:8,fontFamily:'inherit'}}/>
+      </>)}
+      {step===2&&(<>
+        <p style={{fontSize:12,color:'#605e5c',marginBottom:3}}>{email}</p>
+        <button onClick={()=>setStep(1)} style={{fontSize:11,color:'#0078D4',background:'none',border:'none',cursor:'pointer',marginBottom:8,fontFamily:'inherit'}}>Utiliser un autre compte</button>
+        <p style={{fontSize:12,color:'#605e5c',marginBottom:6}}>Mot de passe</p>
+        <input type="password" value={pwd} onChange={e=>setPwd(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="••••••••" style={{width:'100%',padding:'10px 12px',border:'1px solid #edebe9',borderRadius:2,fontSize:13,outline:'none',marginBottom:8,fontFamily:'inherit'}}/>
+      </>)}
+      {err&&<p style={{fontSize:11,color:'#C03626',marginBottom:8}}>{err}</p>}
+      <button onClick={submit} style={{width:'100%',padding:'11px',background:'#0078D4',color:'white',border:'none',borderRadius:2,fontSize:14,fontWeight:600,cursor:'pointer',marginBottom:14,fontFamily:'inherit'}}>{step===1?'Suivant':'Se connecter'}</button>
+      <div style={{borderTop:'1px solid #edebe9',paddingTop:14}}>
+        <p style={{fontSize:10,color:'#979593',marginBottom:8,textAlign:'center'}}>Démo soutenance — accès direct</p>
+        <button onClick={onLogin} style={{width:'100%',padding:'8px',background:'#F3F2F1',color:'#323130',border:'1px solid #edebe9',borderRadius:2,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+          <i className="ti ti-arrow-right" style={{marginRight:5}}></i>Accéder au portail (prototype)
+        </button>
+      </div>
+    </div>
+  </div>);
+}
+// ── HOMEPAGE (Wooden Home focus) ──
+function HomePage({setPg}){
+  const actifs=PROJECTS.filter(p=>p.statut==='En cours');
+  const alertes=COMP_REF.filter(c=>{if(!c.expire) return false;const j=diffJ(c.expire);return j!==null&&j<60;});
+  return(<div>
+    {/* Hero Wooden Home */}
+    <div style={{background:'linear-gradient(135deg,#1B3A2D 0%,#2D5A42 100%)',color:'white',padding:'28px 40px',position:'relative',overflow:'hidden'}}>
+      <div style={{position:'absolute',right:30,top:10,opacity:.04,fontSize:160}}><i className="ti ti-trees"></i></div>
+      <div style={{display:'flex',gap:14,alignItems:'center',marginBottom:16}}>
+        <div style={{width:48,height:48,borderRadius:6,background:'rgba(255,255,255,.15)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <i className="ti ti-trees" style={{fontSize:24,color:'white'}}></i>
+        </div>
+        <div>
+          <h1 style={{fontSize:22,fontWeight:600,lineHeight:1.2}}>Bienvenue sur le portail <strong>Wooden Home</strong></h1>
+          <p style={{fontSize:11,color:'rgba(255,255,255,.7)',marginTop:3}}>Constructions en bois · Particuliers · Collectivités · Maisons modulaires · 5 sites · 358 collaborateurs · CA 400 M€</p>
+        </div>
+      </div>
+      <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+        {[{l:'GED Documents',ic:'ti-files',p:'ged'},{l:'Annuaire',ic:'ti-users',p:'annuaire'},{l:'Projets',ic:'ti-layout-kanban',p:'projets'},{l:'Planning',ic:'ti-calendar',p:'planning'},{l:'Sites & Équipes',ic:'ti-building',p:'equipes'}].map(q=>(
+          <button key={q.p} onClick={()=>setPg(q.p)} style={{display:'flex',alignItems:'center',gap:5,padding:'7px 13px',background:'rgba(255,255,255,.12)',border:'1px solid rgba(255,255,255,.2)',borderRadius:2,color:'white',cursor:'pointer',fontSize:12,fontWeight:500,fontFamily:'inherit'}}>
+            <i className={'ti '+q.ic} style={{fontSize:12}}></i>{q.l}
+          </button>
+        ))}
+      </div>
+    </div>
+    <div style={{padding:'18px 40px'}}>
+      {/* KPIs */}
+      <div className="grid-4" style={{marginBottom:16}}>
+        {[{l:'Projets actifs',v:actifs.length+' / '+PROJECTS.length,s:PROJECTS.filter(p=>p.statut==='Planifié').length+' planifiés',c:'#0F5BA1',ic:'ti-layout-kanban'},{l:'Collaborateurs',v:'358',s:'répartis sur 5 sites',c:'#1A7A4A',ic:'ti-users'},{l:'Alertes compétences',v:alertes.length,s:'renouvellements < 60j',c:alertes.length>0?'#C03626':'#1A7A4A',ic:'ti-alert-triangle'},{l:'Familles GED',v:'10',s:'133 000 documents · 280 Go',c:'#7B3FA0',ic:'ti-files'}].map((s,i)=>(
+          <div key={i} className="card" style={{padding:12,borderTop:'3px solid '+s.c,display:'flex',gap:9}}>
+            <div style={{width:30,height:30,borderRadius:2,background:s.c+'14',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><i className={'ti '+s.ic} style={{fontSize:15,color:s.c}}></i></div>
+            <div><p style={{fontSize:10,color:'#605e5c'}}>{s.l}</p><p style={{fontSize:18,fontWeight:600,color:s.c}}>{s.v}</p><p style={{fontSize:9,color:'#979593'}}>{s.s}</p></div>
+          </div>
+        ))}
+      </div>
+      {/* Alertes */}
+      {alertes.length>0&&<div className="alert-box" style={{background:'#FDECEA',border:'1px solid #C03626',borderRadius:2,marginBottom:14}}>
+        <i className="ti ti-alert-triangle" style={{fontSize:18,color:'#C03626',flexShrink:0}}></i>
+        <div>
+          <p style={{fontWeight:600,color:'#C03626'}}>Alertes compétences réglementaires (J-60)</p>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:4}}>
+            {alertes.map(a=>{const j=diffJ(a.expire);return(<span key={a.id} className="pill" style={{background:'#C03626',color:'white'}}>{a.lib} — J{j} (expire {a.expire})</span>);})}
+          </div>
+        </div>
+      </div>}
+      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:14}}>
+        <div>
+          <p style={{fontSize:13,fontWeight:600,color:'#323130',marginBottom:8}}>Projets en cours</p>
+          {actifs.map(p=>(
+            <div key={p.id} className="card hov" onClick={()=>setPg('projets')} style={{padding:'9px 12px',marginBottom:6,display:'flex',gap:9,alignItems:'center',borderLeft:'3px solid '+(p.famille==='Maisons modulaires'?'#7B3FA0':p.famille==='Collectivités'?'#1A7A4A':p.famille==='IT / Transversal'?'#0F5BA1':'#8B4513')}}>
+              <div style={{flex:1,minWidth:0}}>
+                <p style={{fontSize:12,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.label}</p>
+                <div style={{display:'flex',gap:4,marginTop:2,flexWrap:'wrap'}}>
+                  <span className="pill" style={{background:sb[p.site],color:sc[p.site],fontSize:9}}>{SITES.find(s=>s.id===p.site)?.name}</span>
+                  <span className="pill" style={{background:'#F3F2F1',color:'#605e5c',fontSize:9}}>{p.type==='commande_client'?'Commande client':p.type==='projet_interne'?'Projet interne':'Maintenance'}</span>
+                  <span style={{fontSize:9,color:'#979593'}}>{p.fin}</span>
+                </div>
+              </div>
+              <div style={{width:80,flexShrink:0}}><Taux v={p.pct} h={5}/></div>
+            </div>
+          ))}
+        </div>
+        {/* Gammes */}
+        <div>
+          <p style={{fontSize:13,fontWeight:600,color:'#323130',marginBottom:8}}>Gammes de produits</p>
+          {[{f:'Particuliers',c:'#8B4513',b:'#F5EEE8',ic:'ti-home',nb:3},{f:'Collectivités',c:'#1A7A4A',b:'#E8F5EE',ic:'ti-building-community',nb:3},{f:'Maisons modulaires',c:'#7B3FA0',b:'#F5EEF8',ic:'ti-home-eco',nb:2}].map(({f,c,b,ic,nb})=>(
+            <div key={f} className="card hov" onClick={()=>setPg('projets')} style={{padding:10,marginBottom:6,display:'flex',gap:9,alignItems:'center',borderLeft:'3px solid '+c,cursor:'pointer'}}>
+              <i className={'ti '+ic} style={{fontSize:18,color:c}}></i>
+              <div><p style={{fontSize:12,fontWeight:600,color:'#323130'}}>{f}</p><p style={{fontSize:10,color:'#605e5c'}}>{PROJECTS.filter(p=>p.famille===f).length} projets</p></div>
+            </div>
+          ))}
+          <div className="card" style={{padding:10,marginTop:6,borderLeft:'3px solid #0F5BA1'}}>
+            <p style={{fontSize:11,fontWeight:600,color:'#0F5BA1',marginBottom:4}}>Projet GID-WH en cours</p>
+            <p style={{fontSize:10,color:'#605e5c',marginBottom:6}}>Gouvernance documentaire · Prestataire : Nexia Data Consulting</p>
+            <Taux v={40} color='#0F5BA1' h={5}/>
+            <p style={{fontSize:9,color:'#979593',marginTop:3}}>40% · Budget 300 000€ · Fin 09/12/2026</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>);
+}
+
+// ── GED PAGE ──
+const GED_PLAN=[
+  {id:'RHADM',label:'RH & Administratif',icon:'ti-users',color:'#0F5BA1',bg:'#E8F2FB',count:'8 000',size:'12 Go',subs:['Dossiers salariés','Contrats de travail','Formation','Paie','Médecine du travail','Recrutement']},
+  {id:'FIN',label:'Finance & Comptabilité',icon:'ti-coin',color:'#1A7A4A',bg:'#E8F5EE',count:'45 000',size:'45 Go',subs:['Factures fournisseurs','Factures clients','Pièces comptables','Bilans & annexes','Trésorerie','Fiscalité']},
+  {id:'JUR',label:'Juridique & Contractuel',icon:'ti-gavel',color:'#7B3FA0',bg:'#F5EEF8',count:'6 000',size:'12 Go',subs:['Contrats clients','Contrats fournisseurs','Litiges','Brevets & PI','Accords-cadres']},
+  {id:'TECH',label:'Technique & Production',icon:'ti-tools',color:'#C07B1B',bg:'#FDF3E3',count:'18 000',size:'144 Go',subs:['Plans & CAO','Dossiers produits','Maintenance','Documentation IT','Bureau d\'études']},
+  {id:'QUAL',label:'Qualité & Conformité',icon:'ti-certificate',color:'#C03626',bg:'#FDECEA',count:'4 000',size:'8 Go',subs:['Procédures','Référentiels normatifs','Audits','Non-conformités','Certifications']},
+  {id:'COM',label:'Commercial & Client',icon:'ti-briefcase',color:'#1A6B8A',bg:'#E0F2F8',count:'20 000',size:'30 Go',subs:['Devis & Offres','Dossiers clients','Commandes','Contrats vente','Avant-vente']},
+  {id:'ATEL',label:'Atelier de Production',icon:'ti-building-factory-2',color:'#8B4513',bg:'#F5EEE8',count:'15 000',size:'15 Go',subs:['Ordres de fabrication','Fiches atelier','Consignes sécurité','Contrôles','Fiches process']},
+  {id:'LOG',label:'Logistique & Stock',icon:'ti-truck',color:'#1A9B8B',bg:'#E0F5F3',count:'12 000',size:'12 Go',subs:['Bons de livraison','Inventaires','Mouvements de stock','Expéditions','Réceptions']},
+  {id:'FOUR',label:'Fournisseurs & Partenaires',icon:'ti-building-community',color:'#2C3E50',bg:'#EAF0F6',count:'5 000',size:'7.5 Go',subs:['Contrats fournisseurs','Accords-cadres','Évaluations fournisseurs','Homologations']},
+  {id:'TRANS',label:'Transverse — Direction',icon:'ti-crown',color:'#323130',bg:'#F3F2F1',count:'3 000',size:'3 Go',subs:['CR COPIL / CODIR','Politiques groupe','Documents stratégiques','Référentiels GID']},
+];
+function GEDPage(){
+  const [q,setQ]=useState('');
+  const [sel,setSel]=useState(null);
+  const [selSite,setSelSite]=useState('all');
+  const [view,setView]=useState('familles');
+  const fam=GED_PLAN.find(g=>g.id===sel);
+  const filtered=GED_PLAN.filter(g=>!q||g.label.toLowerCase().includes(q.toLowerCase())||g.subs.some(s=>s.toLowerCase().includes(q.toLowerCase())));
+  return(<div>
+    <div style={{padding:'6px 16px',background:'white',borderBottom:'1px solid #edebe9',display:'flex',gap:6,alignItems:'center',fontSize:11,color:'#605e5c'}}>
+      <span style={{color:'#0078D4',cursor:'pointer'}} onClick={()=>setSel(null)}>GID-WH</span>
+      {fam&&<><span>›</span><span>{fam.label}</span></>}
+    </div>
+    <div className="filter-bar">
+      <SBar value={q} onChange={setQ} ph="Rechercher un type de document, une famille..." w="320px"/>
+      <Sel v={selSite} onChange={setSelSite} opts={[['all','Tous les sites'],...SITES.map(s=>[s.id,s.name+' ('+s.code+')'])]}/>
+      {[{id:'familles',l:'Familles'},{id:'zones',l:'Zones SharePoint'},{id:'nommage',l:'Convention'}].map(t=>(
+        <button key={t.id} onClick={()=>setView(t.id)} className="btn" style={{background:view===t.id?'#e1dfdd':'white',border:'1px solid #edebe9',color:'#323130'}}>{t.l}</button>
+      ))}
+      <div style={{marginLeft:'auto'}}>
+        <span style={{fontSize:11,padding:'2px 8px',background:'#E8F5EE',color:'#1A7A4A',borderRadius:2}}>133 000 docs · 280 Go / 650 Go</span>
+      </div>
+    </div>
+    {!sel&&view==='familles'&&(
+      <div style={{padding:14}}>
+        <div className="lh" style={{gridTemplateColumns:'1fr 80px 70px 110px 70px',marginBottom:0}}>
+          <span>Famille documentaire</span><span>Code</span><span>Documents</span><span>Responsable</span><span>Volume</span>
+        </div>
+        {filtered.map(g=>(
+          <div key={g.id} className="lr" onClick={()=>setSel(g.id)} style={{gridTemplateColumns:'1fr 80px 70px 110px 70px',borderLeft:'3px solid '+g.color,marginBottom:1}}>
+            <div style={{display:'flex',gap:9,alignItems:'center'}}>
+              <div style={{width:28,height:28,borderRadius:2,background:g.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <i className={'ti '+g.icon} style={{fontSize:14,color:g.color}}></i>
+              </div>
+              <div>
+                <p style={{fontSize:12,fontWeight:500,color:'#0078D4'}}>{g.label}</p>
+                <p style={{fontSize:10,color:'#979593'}}>{g.subs.length} sous-familles</p>
+              </div>
+            </div>
+            <span style={{fontSize:11,fontWeight:600,color:g.color}}>{g.id}</span>
+            <span style={{fontSize:11,color:'#605e5c'}}>{g.count}</span>
+            <span style={{fontSize:11,color:'#605e5c'}}>Référent métier</span>
+            <span style={{fontSize:11,color:'#605e5c'}}>{g.size}</span>
+          </div>
+        ))}
+        <div style={{marginTop:12,padding:10,background:'#E8F2FB',borderRadius:2,border:'1px solid #0F5BA120'}}>
+          <p style={{fontSize:11,fontWeight:600,color:'#0F5BA1',marginBottom:3}}>Recherche avancée SharePoint — Metadata Search</p>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {['Par site (LIL/DAX/ANN/BRE/MAC)','Par famille documentaire','Par date de création','Par statut du document','Par auteur / service'].map((m,i)=>(
+              <span key={i} className="pill" style={{background:'white',color:'#0F5BA1',border:'1px solid #0F5BA130',fontSize:10}}>{m}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+    {!sel&&view==='zones'&&(
+      <div style={{padding:14}}>
+        <p style={{fontSize:12,fontWeight:600,marginBottom:10}}>Zones d'archivage SharePoint (CdCT V5 §7.1)</p>
+        {[{z:'00_GOUVERNANCE_GID',desc:'Référentiels, procédures, modèles',acc:'DSI + référents',c:'#323130'},{z:'01_DEPOT_ENTRANT',desc:'Réception lots numérisés avant contrôle',acc:'DSI + numérisation',c:'#C07B1B'},{z:'02_CORPUS_REFERENCE',desc:'Corpus documentaire validé et indexé',acc:'Métiers selon RBAC',c:'#0F5BA1'},{z:'03_QUARANTAINE',desc:'Documents non conformes — Reprise formalisée',acc:'DSI + référents',c:'#C03626'},{z:'04_ARCHIVES',desc:'Documents clos — Conservation légale',acc:'DSI + profils habilités',c:'#7B3FA0'}].map(z=>(
+          <div key={z.z} className="card" style={{padding:'10px 14px',marginBottom:7,borderLeft:'4px solid '+z.c,display:'flex',gap:12,alignItems:'center'}}>
+            <code style={{fontSize:11,fontWeight:700,color:z.c,minWidth:200,flexShrink:0}}>{z.z}</code>
+            <p style={{fontSize:11,color:'#323130',flex:1}}>{z.desc}</p>
+            <span style={{fontSize:10,color:'#605e5c'}}>Accès : {z.acc}</span>
+          </div>
+        ))}
+      </div>
+    )}
+    {!sel&&view==='nommage'&&(
+      <div style={{padding:14}}>
+        <p style={{fontSize:12,fontWeight:600,marginBottom:10}}>Convention de nommage (CdCT V5 §8.4)</p>
+        <code style={{fontSize:13,color:'#323130',background:'#F3F2F1',padding:'10px 14px',borderRadius:2,display:'block',marginBottom:12}}>[SITE]_[SERVICE]_[TYPEDOC]_[REF]_[AAAA-MM-JJ]_[VERSION].[ext]</code>
+        <div className="grid-2">
+          {[['LIL_COMPTA_FACTUREC_EMP00458_2026-05-02_V1.0.pdf','Facture client, site Lille, comptabilité'],['DAX_TECH_PLAN_PROD03900_2026-01-09_V2.0.pdf','Plan technique, site Dax, V2'],['ANN_RH_CONTRAT_EMP00142_2026-03-15_V1.0.pdf','Contrat RH, site Annecy'],['LIL_JUR_NDA_CLI00089_2026-04-01_V1.0.pdf','Accord confidentialité, Lille, juridique']].map(([ex,desc],i)=>(
+            <div key={i} className="card" style={{padding:10}}>
+              <code style={{fontSize:10,color:'#0F5BA1'}}>{ex}</code>
+              <p style={{fontSize:9,color:'#605e5c',marginTop:3}}>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+    {sel&&fam&&(
+      <div style={{padding:14}}>
+        <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:12}}>
+          <div style={{width:36,height:36,borderRadius:2,background:fam.bg,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <i className={'ti '+fam.icon} style={{fontSize:18,color:fam.color}}></i>
+          </div>
+          <div>
+            <p style={{fontSize:14,fontWeight:600}}>{fam.label}</p>
+            <p style={{fontSize:10,color:'#605e5c'}}>{fam.id} · {fam.count} documents · {fam.size} · {fam.subs.length} sous-familles</p>
+          </div>
+        </div>
+        <div className="grid-2">
+          {fam.subs.map((s,i)=>(
+            <div key={i} className="card hov" style={{padding:12,borderLeft:'3px solid '+fam.color}}>
+              <p style={{fontSize:12,fontWeight:600,color:'#0078D4',marginBottom:4}}>{s}</p>
+              <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                {SITES.filter(st=>selSite==='all'||st.id===selSite).map(st=>(
+                  <span key={st.id} className="pill" style={{background:sb[st.id],color:sc[st.id],fontSize:9}}>{st.code}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>);
+}
+// ── ANNUAIRE PAGE ──
+function AnnuairePage(){
+  const [tab,setTab]=useState('dashboard');
+  const [q,setQ]=useState('');
+  const [fSite,setFSite]=useState('all');
+  const [fDir,setFDir]=useState('all');
+  const [fType,setFType]=useState('all');
+  const [selEmp,setSelEmp]=useState(null);
+  const [selSiteMap,setSelSiteMap]=useState(null);
+  const [hovMap,setHovMap]=useState(null);
+  const [compQ,setCompQ]=useState('');
+  const [compCat,setCompCat]=useState('all');
+  const [expanded,setExpanded]=useState({DG:true,RHRH:false,COM:false,PROD:false});
+  const alertes=COMP_REF.filter(c=>{if(!c.expire) return false;const j=diffJ(c.expire);return j!==null&&j<60;});
+  const toggle=k=>setExpanded(p=>({...p,[k]:!p[k]}));
+  const filtEmps=useMemo(()=>EMP.filter(e=>{
+    const ql=q.toLowerCase();
+    return(!ql||`${e.p} ${e.n} ${e.post} ${e.svc}`.toLowerCase().includes(ql))
+      &&(fSite==='all'||e.site===fSite)
+      &&(fType==='all'||(fType==='int'&&!e.ext)||(fType==='ext'&&e.ext))
+      &&(fDir==='all'||e.dir===fDir);
+  }),[q,fSite,fType,fDir]);
+  const emp=selEmp?EMP.find(e=>e.id===selEmp):null;
+  const allSvcs=useMemo(()=>{
+    if(fSite==='all') return[...new Set(DIRECTIONS.flatMap(d=>d.svcs))];
+    const site=SITES.find(s=>s.id===fSite);
+    return site?.svcs||[];
+  },[fSite]);
+  const TABS=[{id:'dashboard',l:'Tableau de bord',ic:'ti-dashboard'},{id:'directory',l:'Collaborateurs',ic:'ti-users'},{id:'map',l:'Carte des sites',ic:'ti-map-pin'},{id:'orgchart',l:'Organigramme',ic:'ti-hierarchy'},{id:'competences',l:'Compétences & Métiers',ic:'ti-certificate'}];
+
+  // DASHBOARD
+  const DashTab=()=>(
+    <div style={{padding:14}}>
+      {alertes.length>0&&<div className="alert-box" style={{background:'#FDECEA',border:'1px solid #C0362530',borderRadius:2,marginBottom:14}}>
+        <i className="ti ti-alert-triangle" style={{fontSize:20,color:'#C03626',flexShrink:0}}></i>
+        <div style={{flex:1}}>
+          <p style={{fontWeight:600,color:'#C03626',marginBottom:6}}>⚠ Alertes — Compétences réglementaires à renouveler (J-60)</p>
+          {alertes.map(a=>{const j=diffJ(a.expire);return(
+            <div key={a.id} style={{display:'flex',gap:8,padding:'6px 0',borderBottom:'1px solid #C0362520',alignItems:'center'}}>
+              <span className="pill" style={{background:'#C03626',color:'white',fontSize:10}}>J{j}</span>
+              <span style={{fontSize:12,flex:1}}><strong>{a.lib}</strong> — expire le {a.expire}</span>
+              <span style={{fontSize:10,color:'#C03626'}}>{a.nb_collabs} collaborateurs concernés</span>
+              <button className="btn" style={{background:'#C03626',color:'white',fontSize:9}}>Planifier renouvellement</button>
+            </div>
+          );})}
+        </div>
+      </div>}
+      {/* Filtre site */}
+      <div style={{display:'flex',gap:7,marginBottom:14,flexWrap:'wrap'}}>
+        <span style={{fontSize:12,color:'#605e5c',alignSelf:'center',fontWeight:600}}>SITE :</span>
+        {[['all','Tous'],...SITES.map(s=>[s.id,s.name])].map(([v,l])=>(
+          <button key={v} onClick={()=>setFSite(v)} className="btn" style={{background:fSite===v?(v==='all'?'#323130':sc[v]):'white',color:fSite===v?'white':(v==='all'?'#323130':sc[v]),border:'1px solid '+(v==='all'?'#323130':sc[v]||(fSite===v?'#323130':'#edebe9')),fontFamily:'inherit'}}>{l}</button>
+        ))}
+        <div style={{flex:1}}/>
+        <SBar value={q} onChange={setQ} ph="Rechercher..." w="200px"/>
+      </div>
+      <div style={{display:'flex',gap:14,alignItems:'flex-start'}}>
+        {/* Services */}
+        <div style={{width:220,flexShrink:0}}>
+          <p style={{fontSize:11,fontWeight:600,color:'#605e5c',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.5px'}}>Services disponibles</p>
+          {allSvcs.map(svc=>{
+            const nb=EMP.filter(e=>e.svc===svc&&!e.ext&&(fSite==='all'||e.site===fSite)).length;
+            const d=DIRECTIONS.find(d=>d.svcs.includes(svc));
+            return(<div key={svc} className="hov card" onClick={()=>setFDir(d?.id||'all')} style={{padding:'6px 10px',marginBottom:4,borderLeft:'3px solid '+(d?.id==='DG'?'#C07B1B':d?.id==='RHRH'?'#0F5BA1':d?.id==='COM'?'#1A7A4A':'#7B3FA0'),cursor:'pointer'}}>
+              <div style={{display:'flex',justifyContent:'space-between'}}>
+                <p style={{fontSize:11,color:'#323130'}}>{svc}</p>
+                {nb>0&&<span style={{fontSize:10,fontWeight:600,color:'#605e5c'}}>{nb}</span>}
+              </div>
+            </div>);
+          })}
+        </div>
+        {/* Projets actifs */}
+        <div style={{flex:1}}>
+          <p style={{fontSize:11,fontWeight:600,color:'#605e5c',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.5px'}}>Projets actifs</p>
+          {PROJECTS.filter(p=>p.statut==='En cours'&&(fSite==='all'||p.site===fSite)).map(proj=>(
+            <div key={proj.id} className="card" style={{padding:'9px 12px',marginBottom:6,borderLeft:'3px solid '+(proj.famille==='Maisons modulaires'?'#7B3FA0':proj.famille==='Collectivités'?'#1A7A4A':'#8B4513')}}>
+              <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:5}}>
+                <p style={{fontSize:12,fontWeight:600,flex:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{proj.label}</p>
+                <StatBadge statut={proj.statut}/>
+              </div>
+              <Taux v={proj.pct} h={5}/>
+              <p style={{fontSize:10,fontWeight:600,color:'#605e5c',marginTop:7,marginBottom:4}}>Affectations :</p>
+              <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                {proj.team.map(t=>{const e=EMP.find(e=>e.id===t.empId);if(!e) return null;return(
+                  <div key={t.empId} style={{display:'flex',gap:5,alignItems:'center',padding:'3px 7px',background:'#F3F2F1',borderRadius:2}}>
+                    <Av p={e.p} n={e.n} id={e.id} size={18} ext={e.ext}/>
+                    <span style={{fontSize:10}}>{e.p} {e.n}</span>
+                    <span style={{fontSize:9,color:'#605e5c'}}>{t.role} · {t.taux}%</span>
+                    {t.intersite&&<span className="pill" style={{background:'#FDF3E3',color:'#C07B1B',fontSize:8}}>Inter-site</span>}
+                  </div>
+                );})}
+                {proj.team.length===0&&<span style={{fontSize:10,color:'#979593'}}>Aucune affectation</span>}
+              </div>
+            </div>
+          ))}
+          {/* Statut site */}
+          {fSite!=='all'&&(()=>{const s=SITES.find(st=>st.id===fSite);return s?(
+            <div className="card" style={{padding:12,marginTop:10,borderTop:'3px solid '+sc[fSite]}}>
+              <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
+                <div style={{width:36,height:36,borderRadius:2,background:sb[fSite],display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <i className="ti ti-building-factory-2" style={{fontSize:18,color:sc[fSite]}}></i>
+                </div>
+                <div>
+                  <p style={{fontSize:13,fontWeight:600}}>{s.name}</p>
+                  <div style={{display:'flex',gap:5,marginTop:2}}>
+                    <span className="pill" style={{background:'#E8F5EE',color:'#1A7A4A',fontSize:9}}>● {s.statut}</span>
+                    <span style={{fontSize:10,color:'#605e5c'}}>{s.nb_collabs} collaborateurs</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ):null;})()}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ORGCHART
+  const OrgTab=()=>{
+    const [fltSite,setFltSite]=useState('all');
+    const [fltDir,setFltDir]=useState('all');
+    const [oq,setOq]=useState('');
+    const empN=id=>{const e=EMP.find(e=>e.id===id);if(!e) return null;
+      const match=!oq||`${e.p} ${e.n} ${e.post} ${e.svc}`.toLowerCase().includes(oq.toLowerCase());
+      if(!match) return null;
+      return(<div style={{padding:'5px 8px',background:'white',border:'1px solid #edebe9',borderRadius:2,borderTop:'2px solid '+(e.ext?'#C07B1B':sc[e.site]||'#888'),minWidth:100,textAlign:'center',maxWidth:120}}>
+        <Av p={e.p} n={e.n} id={e.id} size={22} ext={e.ext} statut={e.statut}/>
+        <p style={{fontSize:9,fontWeight:600,marginTop:3,lineHeight:1.2}}>{e.p[0]}. {e.n.split(' ')[0]}</p>
+        <p style={{fontSize:8,color:'#605e5c',lineHeight:1.2}}>{e.post.substring(0,16)}</p>
+        <span className="pill" style={{background:sb[e.site],color:sc[e.site],fontSize:7,marginTop:2}}>{SITES.find(s=>s.id===e.site)?.code}</span>
+      </div>);
+    };
+    const dirVisible=(dId)=>fltDir==='all'||fltDir===dId;
+    const showDir=dId=>{
+      const d=DIRECTIONS.find(d=>d.id===dId);if(!d) return null;
+      const dc={'DG':'#C07B1B','RHRH':'#0F5BA1','COM':'#1A7A4A','PROD':'#7B3FA0'}[dId]||'#605e5c';
+      const emps=EMP.filter(e=>!e.ext&&e.dir===dId&&(fltSite==='all'||e.site===fltSite));
+      if(!dirVisible(dId)||emps.length===0&&oq) return null;
+      return(<div key={dId} className="card" style={{padding:12,marginBottom:10,borderLeft:'4px solid '+dc}}>
+        <div style={{display:'flex',gap:7,alignItems:'center',marginBottom:9,cursor:'pointer'}} onClick={()=>toggle(dId)}>
+          <div style={{width:24,height:24,borderRadius:2,background:dc+'15',display:'flex',alignItems:'center',justifyContent:'center'}}><i className="ti ti-chevron-down" style={{fontSize:12,color:dc,transform:expanded[dId]?'rotate(0)':'rotate(-90deg)',transition:'0.2s'}}></i></div>
+          <p style={{fontSize:13,fontWeight:600,color:dc}}>{d.label}</p>
+          <span style={{fontSize:10,color:'#979593'}}>{emps.length} collaborateurs</span>
+        </div>
+        {expanded[dId]&&<div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+          {[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23].filter(id=>{const e=EMP.find(e=>e.id===id);return e&&e.dir===dId&&!e.ext&&(fltSite==='all'||e.site===fltSite);}).map(id=>empN(id)).filter(Boolean)}
+        </div>}
+      </div>);
+    };
+    return(<div style={{padding:14}}>
+      <div style={{display:'flex',gap:7,marginBottom:14,flexWrap:'wrap'}}>
+        <SBar value={oq} onChange={setOq} ph="Rechercher..." w="220px"/>
+        <Sel v={fltSite} onChange={setFltSite} opts={[['all','Tous les sites'],...SITES.map(s=>[s.id,s.name])]}/>
+        <Sel v={fltDir} onChange={setFltDir} opts={[['all','Toutes directions'],...DIRECTIONS.map(d=>[d.id,d.label.substring(0,28)])]}/>
+        <button className="btn btn-sec" onClick={()=>setExpanded({DG:true,RHRH:true,COM:true,PROD:true})}>Tout développer</button>
+        <button className="btn btn-sec" onClick={()=>setExpanded({DG:false,RHRH:false,COM:false,PROD:false})}>Tout réduire</button>
+      </div>
+      {/* DG */}
+      {dirVisible('DG')&&(<div className="card" style={{padding:12,marginBottom:10,borderLeft:'4px solid #C07B1B'}}>
+        <p style={{fontSize:13,fontWeight:600,color:'#C07B1B',marginBottom:8}}>Direction Générale</p>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          {[1,2,3].map(id=>empN(id)).filter(Boolean)}
+        </div>
+      </div>)}
+      {['RHRH','COM','PROD'].map(id=>showDir(id))}
+    </div>);
+  };
+
+  // COMPETENCES (style image 2)
+  const CompTab=()=>{
+    const filtered=COMP_REF.filter(c=>(compCat==='all'||c.cat===compCat)&&(!compQ||c.lib.toLowerCase().includes(compQ.toLowerCase())));
+    const CAT_LABELS={'T':'Technique','M':'Management','MET':'Métier','R':'Réglementaire','S':'Soft Skills','all':'Toutes'};
+    return(<div style={{padding:14}}>
+      <div style={{display:'flex',gap:7,marginBottom:12,flexWrap:'wrap'}}>
+        <SBar value={compQ} onChange={setCompQ} ph="Rechercher une compétence..." w="240px"/>
+        {['all','T','M','MET','R','S'].map(cat=>(
+          <button key={cat} onClick={()=>setCompCat(cat)} className="btn" style={{background:compCat===cat?(cat==='all'?'#323130':CAT_C[cat]||'#323130'):'white',color:compCat===cat?'white':(cat==='all'?'#323130':CAT_C[cat]||'#323130'),border:'1px solid '+(cat==='all'?'#edebe9':CAT_C[cat]||'#edebe9'),fontFamily:'inherit',fontSize:11}}>{CAT_LABELS[cat]}</button>
+        ))}
+      </div>
+      {/* Légende */}
+      <div style={{display:'flex',gap:12,marginBottom:12,fontSize:10,color:'#605e5c'}}>
+        <span><span style={{display:'inline-block',width:12,height:12,background:'#E8F2FB',border:'1px solid #0F5BA1',borderRadius:2,verticalAlign:'middle',marginRight:3}}></span>Pratique</span>
+        <span><span style={{display:'inline-block',width:12,height:12,background:'#1A7A4A',borderRadius:2,verticalAlign:'middle',marginRight:3}}></span>Maîtrise</span>
+        <span><span style={{display:'inline-block',width:12,height:12,background:'#0F5BA1',borderRadius:2,verticalAlign:'middle',marginRight:3}}></span>Expertise</span>
+      </div>
+      {/* Header */}
+      <div style={{display:'grid',gridTemplateColumns:'220px 90px 250px 1fr',padding:'5px 12px',background:'#F3F2F1',borderRadius:2,fontSize:10,fontWeight:600,color:'#605e5c',marginBottom:4}}>
+        <span>Compétence</span><span>Catégorie</span><span>Répartition par niveau de maîtrise</span><span style={{textAlign:'right'}}>Nb. collab.</span>
+      </div>
+      {filtered.map(c=>{
+        const j=c.expire?diffJ(c.expire):null;
+        const total=c.niv.pratique+c.niv.maitrise+c.niv.expertise;
+        return(<div key={c.id} className="card" style={{padding:'8px 12px',marginBottom:4,display:'grid',gridTemplateColumns:'220px 90px 250px 1fr',alignItems:'center',borderLeft:'2px solid '+(CAT_C[c.cat]||'#888')}}>
+          <div style={{minWidth:0}}>
+            <p style={{fontSize:11,fontWeight:600,color:'#323130',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{c.lib}</p>
+            {j!==null&&j<60&&<span className="pill" style={{background:'#C03626',color:'white',fontSize:8,marginTop:2}}>⚠ J{j} (expire {c.expire})</span>}
+          </div>
+          <span className="pill" style={{background:CAT_B[c.cat]||'#F3F2F1',color:CAT_C[c.cat]||'#605e5c',fontSize:9,width:'fit-content'}}>{c.cat_label}</span>
+          <div style={{display:'flex',gap:1,height:14}}>
+            {total>0&&<>
+              <div style={{width:(c.niv.pratique/total*240)+'px',background:'#E8F2FB',border:'1px solid #0F5BA140',borderRadius:'2px 0 0 2px',minWidth:c.niv.pratique>0?4:0}}/>
+              <div style={{width:(c.niv.maitrise/total*240)+'px',background:'#1A7A4A',minWidth:c.niv.maitrise>0?4:0}}/>
+              <div style={{width:(c.niv.expertise/total*240)+'px',background:'#0F5BA1',borderRadius:'0 2px 2px 0',minWidth:c.niv.expertise>0?4:0}}/>
+            </>}
+          </div>
+          <p style={{fontSize:11,fontWeight:600,color:'#605e5c',textAlign:'right'}}>{c.nb_collabs} collab.</p>
+        </div>);
+      })}
+      {/* Métiers */}
+      <div style={{marginTop:18}}>
+        <p style={{fontSize:13,fontWeight:600,marginBottom:8}}>Référentiel des métiers Wooden Home ({METIERS.length})</p>
+        <div className="grid-3">
+          {METIERS.map(m=>(
+            <div key={m.id} className="card" style={{padding:10,borderLeft:'3px solid #0F5BA1'}}>
+              <p style={{fontSize:11,fontWeight:600}}>{m.lib}</p>
+              <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+                <span style={{fontSize:9,color:'#605e5c'}}>{m.fam}</span>
+                <span style={{fontSize:12,fontWeight:600,color:'#0F5BA1'}}>{m.nb}</span>
+              </div>
+              <div style={{display:'flex',gap:3,marginTop:5,flexWrap:'wrap'}}>
+                {m.sites.map(s=><span key={s} className="pill" style={{background:sb[s],color:sc[s],fontSize:8}}>{SITES.find(st=>st.id===s)?.code}</span>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>);
+  };
+
+  return(<div>
+    <div className="tab-bar">{TABS.map(t=><button key={t.id} className={'tab-btn'+(tab===t.id?' on':'')} onClick={()=>setTab(t.id)}><i className={'ti '+t.ic} style={{fontSize:12}}></i>{t.l}</button>)}</div>
+
+    {tab==='dashboard'&&<DashTab/>}
+    {tab==='directory'&&(
+      <div style={{padding:14}}>
+        <div style={{display:'flex',gap:7,marginBottom:10,flexWrap:'wrap'}}>
+          <SBar value={q} onChange={setQ} ph="Nom, poste, service, compétence..." w="260px"/>
+          <Sel v={fType} onChange={setFType} opts={[['all','Int. + Prestataires'],['int','WH Internes'],['ext','Prestataires Nexia']]}/>
+          <Sel v={fSite} onChange={setFSite} opts={[['all','Tous sites'],...SITES.map(s=>[s.id,s.name])]}/>
+          <Sel v={fDir} onChange={setFDir} opts={[['all','Toutes directions'],...DIRECTIONS.map(d=>[d.id,d.label.substring(0,25)])]}/>
+        </div>
+        <div style={{display:'flex',gap:5,marginBottom:10}}>
+          <span className="pill" style={{background:'#E8F2FB',color:'#0F5BA1'}}>{filtEmps.filter(e=>!e.ext).length} WH internes</span>
+          <span className="pill" style={{background:'#FDF3E3',color:'#8B5E00'}}>{filtEmps.filter(e=>e.ext).length} Nexia prestataires</span>
+        </div>
+        <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+          <div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6}}>
+            {filtEmps.map(e=>(
+              <div key={e.id} className="card hov" onClick={()=>setSelEmp(selEmp===e.id?null:e.id)}
+                style={{padding:10,borderTop:selEmp===e.id?'2.5px solid '+(e.ext?'#C07B1B':sc[e.site]):'',outline:selEmp===e.id?'1.5px solid '+(e.ext?'#C07B1B':sc[e.site]):'none',background:e.ext?'#FFFBF5':'white'}}>
+                <div style={{display:'flex',gap:7,alignItems:'center',marginBottom:5}}>
+                  <Av p={e.p} n={e.n} id={e.id} size={26} ext={e.ext} statut={e.statut}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <p style={{fontSize:11,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.p} {e.n}</p>
+                    <p style={{fontSize:9,color:'#605e5c',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.post.substring(0,25)}</p>
+                  </div>
+                </div>
+                <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                  <span className="pill" style={{background:sb[e.site],color:sc[e.site],fontSize:9}}>{SITES.find(s=>s.id===e.site)?.name}</span>
+                  <StatBadge statut={e.statut}/>
+                  {e.ext&&<span className="pill" style={{background:'#FDF3E3',color:'#8B5E00',fontSize:9}}>Nexia</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+          {emp&&(
+            <div className="card" style={{width:240,flexShrink:0,borderTop:'3px solid '+(emp.ext?'#C07B1B':sc[emp.site])}}>
+              {emp.ext&&<div style={{padding:'4px 10px',background:'#FDF3E3',borderBottom:'1px solid #edebe9',fontSize:10,color:'#8B5E00',fontWeight:600}}><i className="ti ti-building" style={{fontSize:10}}></i> {emp.company}</div>}
+              <div style={{padding:'12px 12px 8px',borderBottom:'1px solid #edebe9'}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+                  <Av p={emp.p} n={emp.n} id={emp.id} size={38} ext={emp.ext} statut={emp.statut}/>
+                  <button className="nb" onClick={()=>setSelEmp(null)} style={{color:'#979593',padding:2,alignSelf:'flex-start'}}><i className="ti ti-x" style={{fontSize:13}}></i></button>
+                </div>
+                <p style={{fontSize:12,fontWeight:600}}>{emp.p} {emp.n}</p>
+                <p style={{fontSize:10,color:'#605e5c',marginBottom:6}}>{emp.post}</p>
+                <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                  <span className="pill" style={{background:sb[emp.site],color:sc[emp.site]}}>{SITES.find(s=>s.id===emp.site)?.name}</span>
+                  <StatBadge statut={emp.statut}/>
+                </div>
+              </div>
+              <div style={{padding:'8px 12px',borderBottom:'1px solid #edebe9',display:'flex',flexDirection:'column',gap:4}}>
+                <div style={{display:'flex',gap:5}}><i className="ti ti-mail" style={{fontSize:10,color:'#979593'}}></i><span style={{fontSize:9,color:'#0067b8',wordBreak:'break-all'}}>{emp.mail}</span></div>
+                <div style={{display:'flex',gap:5}}><i className="ti ti-phone" style={{fontSize:10,color:'#979593'}}></i><span style={{fontSize:9}}>{emp.tel}</span></div>
+                {emp.mobile&&emp.mobile!=='—'&&<div style={{display:'flex',gap:5}}><i className="ti ti-device-mobile" style={{fontSize:10,color:'#979593'}}></i><span style={{fontSize:9}}>{emp.mobile}</span></div>}
+              </div>
+              <div style={{padding:'7px 12px',borderBottom:'1px solid #edebe9'}}>
+                <p style={{fontSize:9,fontWeight:600,color:'#605e5c',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>Compétences</p>
+                {emp.sk.map((s,i)=><div key={i} style={{display:'flex',gap:5,padding:'2px 0',alignItems:'center'}}>
+                  <span className="pill" style={{background:CAT_B[s.cat]||'#F3F2F1',color:CAT_C[s.cat]||'#605e5c',fontSize:8,flexShrink:0}}>{s.cat}</span>
+                  <span style={{fontSize:10,color:'#323130'}}>{s.lib}</span>
+                </div>)}
+              </div>
+              {PROJECTS.filter(p=>p.team.some(t=>t.empId===emp.id)).length>0&&<div style={{padding:'7px 12px'}}>
+                <p style={{fontSize:9,fontWeight:600,color:'#605e5c',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>Projets</p>
+                {PROJECTS.filter(p=>p.team.some(t=>t.empId===emp.id)).map(p=>{const t=p.team.find(t=>t.empId===emp.id);return(
+                  <div key={p.id} style={{padding:'3px 6px',background:'#F3F2F1',borderRadius:2,marginBottom:3}}>
+                    <p style={{fontSize:9,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.label}</p>
+                    <p style={{fontSize:9,color:'#605e5c'}}>{t.role} · {t.taux}%</p>
+                  </div>
+                );})}
+              </div>}
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {tab==='map'&&(
+      <div style={{padding:14,display:'flex',gap:14,alignItems:'flex-start'}}>
+        <div style={{flexShrink:0,width:260}}>
+          <SBar value={q} onChange={setQ} ph="Rechercher un collaborateur, un projet..." w="100%"/>
+          <div style={{marginTop:10}}>
+            <svg viewBox="0 0 280 292" style={{width:'100%',background:'#F3F2F1',border:'1px solid #edebe9',borderRadius:2}}>
+              <path d="M 157,12 L 175,20 L 195,28 L 213,52 L 240,88 L 237,114 L 225,156 L 231,200 L 242,228 L 216,243 L 183,240 L 168,262 L 122,260 L 80,240 L 68,220 L 72,192 L 62,168 L 52,140 L 38,116 L 22,92 L 26,80 L 42,85 L 72,82 L 82,58 L 118,54 L 148,14 Z" fill="white" stroke="#c8c6c4" strokeWidth="1.5"/>
+              {SITES.filter(s=>s.id!=='lille').map(s=><line key={s.id} x1={170} y1={24} x2={s.x} y2={s.y} stroke={sc[s.id]} strokeWidth="0.8" strokeDasharray="3,3" opacity="0.35"/>)}
+              {SITES.map(s=>{
+                const isSel=selSiteMap===s.id;const isHQ=s.id==='lille';
+                const proj=PROJECTS.filter(p=>p.site===s.id&&p.statut==='En cours').length;
+                return(<g key={s.id} onClick={()=>setSelSiteMap(isSel?null:s.id)} onMouseEnter={()=>setHovMap(s.id)} onMouseLeave={()=>setHovMap(null)} style={{cursor:'pointer'}}>
+                  {(isSel||hovMap===s.id)&&<circle cx={s.x} cy={s.y} r="14" fill={sc[s.id]} opacity="0.15"/>}
+                  {isHQ?<polygon points={s.x+','+(s.y-11)+' '+(s.x-7)+','+(s.y+3)+' '+(s.x+7)+','+(s.y+3)} fill={sc[s.id]} stroke="white" strokeWidth="1.5"/>:<circle cx={s.x} cy={s.y} r={isSel?8:6} fill={sc[s.id]} stroke="white" strokeWidth="2"/>}
+                  {proj>0&&<><circle cx={s.x+7} cy={s.y-7} r="6" fill="#C07B1B" stroke="white" strokeWidth="1"/><text x={s.x+7} y={s.y-4} fontSize="7" textAnchor="middle" fill="white" fontWeight="700" fontFamily="Segoe UI,sans-serif">{proj}</text></>}
+                  <text x={s.x+(s.x>130?10:-10)} y={s.y+(s.id==='brest'?-10:4)} fontSize="8.5" fill={isSel?sc[s.id]:'#605e5c'} fontWeight={isSel?'600':'400'} textAnchor={s.x>130?'start':'end'} fontFamily="Segoe UI,sans-serif">{s.name}</text>
+                </g>);
+              })}
+            </svg>
+          </div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:8}}>
+            {SITES.map(s=><button key={s.id} onClick={()=>setSelSiteMap(selSiteMap===s.id?null:s.id)} style={{fontSize:9,padding:'2px 7px',borderRadius:2,border:'1px solid '+sc[s.id],color:selSiteMap===s.id?'#fff':sc[s.id],background:selSiteMap===s.id?sc[s.id]:sb[s.id],cursor:'pointer',fontFamily:'inherit'}}>{s.name}</button>)}
+          </div>
+        </div>
+        {selSiteMap?(()=>{
+          const site=SITES.find(s=>s.id===selSiteMap);
+          const sEmps=EMP.filter(e=>e.site===site.id&&!e.ext&&(!q||`${e.p} ${e.n} ${e.post}`.toLowerCase().includes(q.toLowerCase())));
+          const sProjs=PROJECTS.filter(p=>p.site===site.id);
+          return(<div style={{flex:1}}>
+            <div className="card" style={{padding:14,marginBottom:12,borderTop:'3px solid '+sc[site.id]}}>
+              <div style={{display:'flex',gap:10,alignItems:'center'}}>
+                <div style={{width:44,height:44,borderRadius:3,background:sb[site.id],display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <i className={`ti ${site.id==='lille'?'ti-building':'ti-building-factory-2'}`} style={{fontSize:22,color:sc[site.id]}}></i>
+                </div>
+                <div style={{flex:1}}>
+                  <h2 style={{fontSize:16,fontWeight:600,color:sc[site.id]}}>{site.name}</h2>
+                  <p style={{fontSize:11,color:'#605e5c'}}>{site.sub} · {site.region}</p>
+                </div>
+                <span className="pill" style={{background:'#E8F5EE',color:'#1A7A4A'}}>● {site.statut}</span>
+              </div>
+              <div style={{display:'flex',gap:14,marginTop:12,paddingTop:12,borderTop:'1px solid #edebe9'}}>
+                {[['ti-map-pin',site.adresse+', '+site.cp+' '+site.ville,'Adresse'],['ti-phone',site.tel,'Téléphone'],['ti-users',site.nb_collabs+' collaborateurs','Effectifs'],['ti-layout-kanban',sProjs.length+' projets','Projets']].map(([ic,v,l])=>(
+                  <div key={l} style={{display:'flex',gap:5,alignItems:'center'}}>
+                    <i className={'ti '+ic} style={{fontSize:12,color:sc[site.id],flexShrink:0}}></i>
+                    <div><p style={{fontSize:9,color:'#979593'}}>{l}</p><p style={{fontSize:11,fontWeight:500}}>{v}</p></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {sProjs.length>0&&<div className="card" style={{padding:12,marginBottom:10}}>
+              <p style={{fontSize:11,fontWeight:600,color:'#605e5c',marginBottom:7,textTransform:'uppercase',letterSpacing:'0.5px'}}>Projets ({sProjs.length})</p>
+              {sProjs.map(p=><div key={p.id} style={{display:'flex',gap:7,alignItems:'center',padding:'5px 0',borderBottom:'1px solid #edebe9'}}>
+                <p style={{fontSize:11,flex:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.label}</p>
+                <StatBadge statut={p.statut}/><div style={{width:60}}><Taux v={p.pct} h={4}/></div>
+              </div>)}
+            </div>}
+            <div className="card" style={{padding:12}}>
+              <p style={{fontSize:11,fontWeight:600,color:'#605e5c',marginBottom:7,textTransform:'uppercase',letterSpacing:'0.5px'}}>Services ({site.svcs.length}) · Équipe ({sEmps.length} collaborateurs)</p>
+              <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:10}}>
+                {site.svcs.map(sv=><span key={sv} className="pill" style={{background:sb[site.id],color:sc[site.id],border:'0.5px solid '+sc[site.id]+'30'}}>{sv}</span>)}
+              </div>
+              {sEmps.map(e=><div key={e.id} style={{display:'flex',gap:7,alignItems:'center',padding:'5px 0',borderBottom:'1px solid #edebe9'}}>
+                <Av p={e.p} n={e.n} id={e.id} size={22} statut={e.statut}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <p style={{fontSize:11,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.p} {e.n}</p>
+                  <p style={{fontSize:9,color:'#979593'}}>{e.post.substring(0,30)} · {e.svc}</p>
+                </div>
+              </div>)}
+            </div>
+          </div>);
+        })():(<div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:300,color:'#979593',gap:10}}>
+          <i className="ti ti-map-2" style={{fontSize:48}}></i>
+          <p style={{fontSize:13}}>Cliquez sur un site pour voir la fiche détaillée</p>
+          <p style={{fontSize:10}}>Adresse · Téléphone · Collaborateurs · Services · Projets actifs</p>
+        </div>)}
+      </div>
+    )}
+
+    {tab==='orgchart'&&<OrgTab/>}
+    {tab==='competences'&&<CompTab/>}
+  </div>);
+}
+// ── PROJETS PAGE ──
+function ProjetsPage(){
+  const [q,setQ]=useState('');
+  const [fFam,setFFam]=useState('all');
+  const [fSite,setFSite]=useState('all');
+  const [fStat,setFStat]=useState('all');
+  const [selId,setSelId]=useState(null);
+  const filtered=useMemo(()=>PROJECTS.filter(p=>{
+    const ql=q.toLowerCase();
+    return(!ql||`${p.label} ${p.client} ${p.desc}`.toLowerCase().includes(ql))
+      &&(fFam==='all'||p.famille===fFam)
+      &&(fSite==='all'||p.site===fSite)
+      &&(fStat==='all'||p.statut===fStat);
+  }),[q,fFam,fSite,fStat]);
+  const proj=selId?PROJECTS.find(p=>p.id===selId):null;
+  const FAMS=['all','Particuliers','Collectivités','Maisons modulaires','IT / Transversal'];
+  return(<div>
+    <div className="filter-bar">
+      <SBar value={q} onChange={setQ} ph="Rechercher un projet, un client..." w="240px"/>
+      <Sel v={fSite} onChange={setFSite} opts={[['all','Tous sites'],...SITES.map(s=>[s.id,s.name])]}/>
+      <Sel v={fStat} onChange={setFStat} opts={[['all','Tous statuts'],['En cours','En cours'],['Planifié','Planifié'],['Terminé','Terminé']]}/>
+      <div style={{flex:1}}/>
+      {FAMS.map(f=>{const c=f==='all'?'#605e5c':(FAM_C[f]||'#605e5c');return(
+        <button key={f} onClick={()=>setFFam(f)} style={{padding:'4px 9px',fontSize:11,border:'1px solid '+(fFam===f?c:'#edebe9'),borderRadius:2,cursor:'pointer',fontFamily:'inherit',background:fFam===f?c+'14':'white',color:c,fontWeight:fFam===f?600:400,display:'flex',alignItems:'center',gap:3}}>
+          {f!=='all'&&FAM_IC[f]&&<i className={'ti '+FAM_IC[f]} style={{fontSize:11}}></i>}{f==='all'?'Tous':f}
+        </button>
+      );})}
+    </div>
+    <div style={{padding:14,display:'flex',gap:10,alignItems:'flex-start'}}>
+      <div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:7}}>
+        {filtered.map(p=>{const fc=FAM_C[p.famille]||'#605e5c';return(
+          <div key={p.id} className="card hov" onClick={()=>setSelId(selId===p.id?null:p.id)}
+            style={{padding:12,borderLeft:'4px solid '+fc,outline:selId===p.id?'1.5px solid '+fc:'none'}}>
+            <div style={{display:'flex',gap:7,alignItems:'flex-start',marginBottom:6}}>
+              <div style={{width:28,height:28,background:fc+'15',borderRadius:2,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                {FAM_IC[p.famille]&&<i className={'ti '+FAM_IC[p.famille]} style={{fontSize:14,color:fc}}></i>}
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <p style={{fontSize:12,fontWeight:600,lineHeight:1.3,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.label}</p>
+                <p style={{fontSize:10,color:'#979593'}}>{p.ref} · {p.client}</p>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:6}}>
+              <span className="pill" style={{background:sb[p.site],color:sc[p.site],fontSize:9}}>{SITES.find(s=>s.id===p.site)?.name}</span>
+              <span className="pill" style={{background:'#F3F2F1',color:'#605e5c',fontSize:9}}>{p.type==='commande_client'?'Commande':p.type==='projet_interne'?'Interne':'Maintenance'}</span>
+              <StatBadge statut={p.statut}/>
+            </div>
+            <Taux v={p.pct} h={5} color={fc}/>
+            <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+              <span style={{fontSize:9,color:'#979593'}}>{p.debut} → {p.fin}</span>
+              <span style={{fontSize:9,color:'#605e5c'}}>{(p.budget/1000).toFixed(0)}K€</span>
+            </div>
+          </div>
+        );})}
+        {filtered.length===0&&<div style={{gridColumn:'1/-1',padding:30,textAlign:'center',color:'#979593'}}>
+          <i className="ti ti-mood-empty" style={{fontSize:40,display:'block',marginBottom:8}}></i><p>Aucun projet</p>
+        </div>}
+      </div>
+      {proj&&(
+        <div className="card" style={{width:260,flexShrink:0,borderTop:'3px solid '+(FAM_C[proj.famille]||'#605e5c')}}>
+          <div style={{padding:'10px 12px',borderBottom:'1px solid #edebe9',display:'flex',gap:7,alignItems:'center'}}>
+            <div style={{flex:1,minWidth:0}}>
+              <p style={{fontSize:12,fontWeight:600,lineHeight:1.3}}>{proj.label}</p>
+              <p style={{fontSize:9,color:'#979593'}}>{proj.ref} · {proj.client}</p>
+            </div>
+            <button className="nb" onClick={()=>setSelId(null)} style={{color:'#979593',padding:2}}><i className="ti ti-x" style={{fontSize:13}}></i></button>
+          </div>
+          <div style={{padding:'8px 12px',borderBottom:'1px solid #edebe9'}}>
+            <p style={{fontSize:10,color:'#605e5c',lineHeight:1.6,marginBottom:7}}>{proj.desc}</p>
+            {[['Début',proj.debut],['Fin',proj.fin],['Budget',(proj.budget/1000).toFixed(0)+'K€'],['Dépensé',(proj.depense/1000).toFixed(0)+'K€ ('+(proj.budget>0?Math.round(proj.depense/proj.budget*100):0)+'%)']].map(([l,v])=>(
+              <div key={l} style={{display:'flex',gap:5,fontSize:11,marginBottom:2}}><span style={{color:'#605e5c',width:55,flexShrink:0}}>{l} :</span><strong>{v}</strong></div>
+            ))}
+            <div style={{marginTop:6}}><Taux v={proj.pct} color={FAM_C[proj.famille]||'#605e5c'} h={5}/></div>
+          </div>
+          {proj.comp_requises.length>0&&<div style={{padding:'8px 12px',borderBottom:'1px solid #edebe9'}}>
+            <p style={{fontSize:9,fontWeight:600,color:'#605e5c',marginBottom:5,textTransform:'uppercase',letterSpacing:'0.5px'}}>Compétences requises</p>
+            {proj.comp_requises.map((c,i)=>{const r=COMP_REF.find(r=>r.lib===c);const j=r?.expire?diffJ(r.expire):null;return(
+              <div key={i} style={{display:'flex',gap:5,padding:'2px 0',alignItems:'center'}}>
+                {r&&<span className="pill" style={{background:CAT_B[r.cat]||'#F3F2F1',color:CAT_C[r.cat]||'#605e5c',fontSize:8}}>{r.cat_label}</span>}
+                <span style={{fontSize:10,color:'#323130',flex:1}}>{c}</span>
+                {j!==null&&j<60&&<span className="pill" style={{background:'#C03626',color:'white',fontSize:7}}>⚠ J{j}</span>}
+              </div>
+            );})}
+          </div>}
+          {proj.team.length>0&&<div style={{padding:'8px 12px',borderBottom:'1px solid #edebe9'}}>
+            <p style={{fontSize:9,fontWeight:600,color:'#605e5c',marginBottom:5,textTransform:'uppercase',letterSpacing:'0.5px'}}>Équipe ({proj.team.length})</p>
+            {proj.team.map(t=>{const e=EMP.find(e=>e.id===t.empId);if(!e) return null;return(
+              <div key={t.empId} style={{display:'flex',gap:6,padding:'5px 0',borderBottom:'1px solid #edebe9',alignItems:'center'}}>
+                <Av p={e.p} n={e.n} id={e.id} size={22} ext={e.ext} statut={e.statut}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <p style={{fontSize:10,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.p} {e.n}</p>
+                  <p style={{fontSize:9,color:'#605e5c'}}>{t.role} · {t.taux}%</p>
+                  {t.intersite&&<span className="pill" style={{background:'#FDF3E3',color:'#C07B1B',fontSize:7}}>Inter-site → {t.lieu}</span>}
+                </div>
+              </div>
+            );})}
+          </div>}
+          <div style={{padding:'8px 12px'}}>
+            <button className="btn btn-prim" style={{width:'100%',justifyContent:'center'}}><i className="ti ti-user-plus" style={{fontSize:12}}></i>Affecter un collaborateur</button>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>);
+}
+// ── PLANNING PAGE ──
+function PlanningPage(){
+  const [tab,setTab]=useState('gantt');
+  const [fSite,setFSite]=useState('all');
+  const [fStat,setFStat]=useState('all');
+  const [selProj,setSelProj]=useState(null);
+  const [showAffect,setShowAffect]=useState(false);
+  const [selCollab,setSelCollab]=useState(null);
+  const [resQ,setResQ]=useState('');
+  const [resSite,setResSite]=useState('all');
+  const MONTHS=['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOU','SEP','OCT','NOV','DÉC'];
+  const MW=38;
+  const m2idx=dStr=>{if(!dStr) return 0;const[,mm]=dStr.split('/');return parseInt(mm)-1;};
+  const filtProjs=useMemo(()=>PROJECTS.filter(p=>
+    (fSite==='all'||p.site===fSite)&&
+    (fStat==='all'||(fStat==='actif'&&p.statut==='En cours')||(fStat==='planifie'&&p.statut==='Planifié')||(fStat==='termine'&&p.statut==='Terminé'))
+  ),[fSite,fStat]);
+  const collab=selCollab?EMP.find(e=>e.id===selCollab):null;
+  const resEmps=EMP.filter(e=>!e.ext&&(resSite==='all'||e.site===resSite)&&(!resQ||`${e.p} ${e.n} ${e.post} ${e.svc}`.toLowerCase().includes(resQ.toLowerCase())));
+  const proj=selProj?PROJECTS.find(p=>p.id===selProj):null;
+
+  return(<div>
+    <div className="tab-bar">
+      {[{id:'gantt',l:'Calendrier Gantt',ic:'ti-chart-gantt'},{id:'ressources',l:'Disponibilités & Affectations',ic:'ti-chart-bar'}].map(t=>(
+        <button key={t.id} className={'tab-btn'+(tab===t.id?' on':'')} onClick={()=>setTab(t.id)}><i className={'ti '+t.ic} style={{fontSize:12}}></i>{t.l}</button>
+      ))}
+    </div>
+
+    {tab==='gantt'&&(<div style={{padding:14}}>
+      <div style={{display:'flex',gap:8,marginBottom:10,flexWrap:'wrap'}}>
+        <div style={{display:'flex',gap:5,fontSize:12,fontWeight:600,color:'#323130',alignItems:'center'}}>
+          Planning Projets d'Installation 2026
+          <span style={{fontSize:10,color:'#979593',fontWeight:400}}>Gantt — {filtProjs.length} projets · Vue chef de projet</span>
+        </div>
+        <div style={{marginLeft:'auto',display:'flex',gap:6}}>
+          <Sel v={fSite} onChange={setFSite} opts={[['all','Tous les sites'],...SITES.map(s=>[s.id,s.name])]}/>
+          <Sel v={fStat} onChange={setFStat} opts={[['all','Tous statuts'],['actif','En cours'],['planifie','Planifiés'],['termine','Terminés']]}/>
+          <button className="btn btn-prim"><i className="ti ti-plus" style={{fontSize:12}}></i>Projet</button>
+          <button className="btn btn-sec"><i className="ti ti-download" style={{fontSize:12}}></i>Export</button>
+        </div>
+      </div>
+      {/* KPIs */}
+      <div style={{display:'flex',gap:8,marginBottom:10}}>
+        {[['ti-layout-kanban',PROJECTS.length,'Projets total','#0F5BA1'],['ti-circle','En cours',PROJECTS.filter(p=>p.statut==='En cours').length,'#1A7A4A'],['ti-check','Terminés',PROJECTS.filter(p=>p.statut==='Terminé').length,'#605e5c'],['ti-calendar','Planifiés',PROJECTS.filter(p=>p.statut==='Planifié').length,'#7B3FA0']].map(([ic,l,v,c],i)=>{
+          const iNum=typeof l==='number';const label=iNum?l:v;const sub=iNum?l:l;
+          return(<div key={i} className="card" style={{padding:'7px 12px',display:'flex',gap:8,alignItems:'center',minWidth:90}}>
+            <div style={{width:28,height:28,background:c+'14',borderRadius:2,display:'flex',alignItems:'center',justifyContent:'center'}}><i className={'ti '+ic} style={{fontSize:13,color:c}}></i></div>
+            <div><p style={{fontSize:16,fontWeight:600,color:c}}>{typeof v==='number'?v:l}</p><p style={{fontSize:9,color:'#979593'}}>{typeof v==='string'?v:ic==='ti-layout-kanban'?'Projets total':v===PROJECTS.filter(p=>p.statut==='En cours').length?'En cours':v===PROJECTS.filter(p=>p.statut==='Terminé').length?'Terminés':'Planifiés'}</p></div>
+          </div>);
+        })}
+      </div>
+      {/* Gantt */}
+      <div className="card" style={{overflowX:'auto'}}>
+        {/* Header */}
+        <div style={{display:'grid',gridTemplateColumns:'240px 1fr',borderBottom:'1px solid #edebe9'}}>
+          <div style={{padding:'6px 10px',background:'#F3F2F1',fontSize:10,fontWeight:600,color:'#605e5c'}}>PROJET</div>
+          <div style={{display:'flex'}}>
+            {MONTHS.map((m,i)=><div key={i} style={{width:MW+28,textAlign:'center',padding:'6px 0',background:'#F3F2F1',borderLeft:'1px solid #edebe9',fontSize:9,fontWeight:600,color:i===4?'#C03626':'#605e5c',flexShrink:0,color:i===4?'#C03626':'#605e5c'}}>{m}{i===4?' ◀':''}</div>)}
+          </div>
+        </div>
+        {filtProjs.map(p=>{
+          const si=m2idx(p.debut),ei=m2idx(p.fin);
+          const fc=FAM_C[p.famille]||'#605e5c';
+          const isSel=selProj===p.id;
+          return(<>
+            <div key={p.id} onClick={()=>setSelProj(isSel?null:p.id)}
+              style={{display:'grid',gridTemplateColumns:'240px 1fr',borderBottom:'1px solid #edebe9',background:isSel?fc+'08':'white',cursor:'pointer'}}>
+              <div style={{padding:'8px 10px',borderRight:'1px solid #edebe9',borderLeft:'3px solid '+fc}}>
+                <div style={{display:'flex',gap:4,alignItems:'center',marginBottom:3}}>
+                  <span style={{fontSize:8,color:'#979593',fontFamily:'monospace'}}>{p.ref}</span>
+                  <span className="pill" style={{background:'#F3F2F1',color:'#605e5c',fontSize:7}}>{p.type==='commande_client'?'commande_client':p.type}</span>
+                </div>
+                <p style={{fontSize:11,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.label}</p>
+                <p style={{fontSize:9,color:'#979593'}}>📍 {SITES.find(s=>s.id===p.site)?.name} · {p.client}</p>
+              </div>
+              <div style={{display:'flex',position:'relative',alignItems:'center'}}>
+                {MONTHS.map((_,i)=><div key={i} style={{width:MW+28,height:'100%',borderLeft:'1px solid #edebe9',flexShrink:0,background:i===4?'#FFF5F5':'transparent'}}/>)}
+                <div style={{position:'absolute',left:si*(MW+28)+4,width:(ei-si+1)*(MW+28)-8,height:20,borderRadius:3,background:fc,opacity:p.statut==='Planifié'?0.35:0.75,top:'calc(50% - 10px)',zIndex:1,display:'flex',alignItems:'center',padding:'0 6px',overflow:'hidden'}}>
+                  <span style={{fontSize:9,color:'white',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.label} {p.pct>0?'— '+p.pct+'%':''}</span>
+                </div>
+              </div>
+            </div>
+            {isSel&&(<div style={{background:'#F8F9FA',borderBottom:'2px solid '+fc,padding:'12px 14px',borderLeft:'4px solid '+fc}}>
+              <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
+                <div style={{flex:1}}>
+                  <p style={{fontSize:13,fontWeight:600,marginBottom:4}}>{p.label}</p>
+                  <p style={{fontSize:11,color:'#605e5c',marginBottom:7}}>{p.desc}</p>
+                  <div style={{display:'flex',gap:12,marginBottom:7}}>
+                    <span style={{fontSize:11,color:'#605e5c'}}>📅 {p.debut} → {p.fin}</span>
+                    <span style={{fontSize:11,color:'#605e5c'}}>💶 Budget : {(p.budget/1000).toFixed(0)}K€</span>
+                    <span style={{fontSize:11,fontWeight:600,color:fc}}>{p.pct}% avancement</span>
+                  </div>
+                  {/* Compétences requises */}
+                  {p.comp_requises.length>0&&<div style={{marginBottom:7}}>
+                    <p style={{fontSize:10,fontWeight:600,color:'#605e5c',marginBottom:4}}>Compétences requises :</p>
+                    <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                      {p.comp_requises.map((c,i)=>{const r=COMP_REF.find(r=>r.lib===c);const j=r?.expire?diffJ(r.expire):null;return(
+                        <span key={i} className="pill" style={{background:(r?CAT_B[r.cat]:null)||'#F3F2F1',color:(r?CAT_C[r.cat]:null)||'#605e5c',fontSize:9}}>
+                          {c}{j!==null&&j<60&&` ⚠ J${j}`}
+                        </span>
+                      );})}
+                    </div>
+                  </div>}
+                </div>
+                <button onClick={e=>{e.stopPropagation();setSelProj(p.id);setShowAffect(true);}} className="btn btn-prim"><i className="ti ti-user-plus" style={{fontSize:12}}></i>Affecter un collaborateur</button>
+              </div>
+              {/* Parties prenantes */}
+              {p.team.length>0&&<div style={{marginTop:8,borderTop:'1px solid #edebe9',paddingTop:8}}>
+                <p style={{fontSize:10,fontWeight:600,color:'#605e5c',marginBottom:5}}>Affectations par projet :</p>
+                <div style={{overflowX:'auto'}}>
+                  <div style={{display:'grid',gridTemplateColumns:'150px 80px 120px 100px 80px 130px 100px',padding:'4px 0',fontSize:9,fontWeight:600,color:'#979593',borderBottom:'1px solid #edebe9'}}>
+                    <span>COLLABORATEUR</span><span>SITE ORIGINE</span><span>LIEU MISSION</span><span>INTER-SITE</span><span>TAUX</span><span>PÉRIODE</span><span>RÔLE</span>
+                  </div>
+                  {p.team.map(t=>{const e=EMP.find(e=>e.id===t.empId);if(!e) return null;return(
+                    <div key={t.empId} style={{display:'grid',gridTemplateColumns:'150px 80px 120px 100px 80px 130px 100px',padding:'5px 0',fontSize:11,borderBottom:'1px solid #edebe9',alignItems:'center'}}>
+                      <div style={{display:'flex',gap:5,alignItems:'center'}}><Av p={e.p} n={e.n} id={e.id} size={18} ext={e.ext}/><span>{e.p} {e.n}</span></div>
+                      <span className="pill" style={{background:sb[e.site],color:sc[e.site],fontSize:8}}>{SITES.find(s=>s.id===e.site)?.code}</span>
+                      <span style={{fontSize:10}}>{t.lieu||SITES.find(s=>s.id===p.site)?.name}</span>
+                      <span>{t.intersite?<span className="pill" style={{background:'#FDF3E3',color:'#C07B1B',fontSize:8}}>Oui</span>:<span style={{fontSize:10,color:'#979593'}}>Non</span>}</span>
+                      <span style={{fontWeight:600,color:fc}}>{t.taux}%</span>
+                      <span style={{fontSize:9,color:'#605e5c'}}>{t.debut} → {t.fin}</span>
+                      <span style={{fontSize:10}}>{t.role}</span>
+                    </div>
+                  );})}
+                </div>
+              </div>}
+            </div>)}
+          </>);
+        })}
+      </div>
+    </div>)}
+
+    {tab==='ressources'&&(<div style={{padding:14}}>
+      <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}>
+        <SBar value={resQ} onChange={setResQ} ph="Rechercher un collaborateur..." w="240px"/>
+        <Sel v={resSite} onChange={setResSite} opts={[['all','Tous les sites'],...SITES.map(s=>[s.id,s.name])]}/>
+        <button className="btn btn-warn"><i className="ti ti-user-plus" style={{fontSize:12}}></i>Affecter un collaborateur</button>
+      </div>
+      <div style={{display:'flex',gap:14,alignItems:'flex-start'}}>
+        <div style={{flex:1}}>
+          <div className="lh" style={{gridTemplateColumns:'160px 70px 1fr 90px 120px',marginBottom:0}}>
+            <span>Collaborateur</span><span>Site</span><span>Disponibilité</span><span>Charge</span><span>Projets</span>
+          </div>
+          {resEmps.map(e=>{
+            const charge=PROJECTS.filter(p=>p.team.some(t=>t.empId===e.id)).reduce((a,p)=>a+(p.team.find(t=>t.empId===e.id)?.taux||0),0);
+            const projs=PROJECTS.filter(p=>p.team.some(t=>t.empId===e.id));
+            return(<div key={e.id} className="lr" onClick={()=>setSelCollab(selCollab===e.id?null:e.id)} style={{gridTemplateColumns:'160px 70px 1fr 90px 120px',outline:selCollab===e.id?'1.5px solid #0078D4':'none'}}>
+              <div style={{display:'flex',gap:6,alignItems:'center'}}><Av p={e.p} n={e.n} id={e.id} size={24}/><div><p style={{fontSize:11,fontWeight:500}}>{e.p} {e.n}</p><p style={{fontSize:9,color:'#979593'}}>{e.svc.substring(0,18)}</p></div></div>
+              <span className="pill" style={{background:sb[e.site],color:sc[e.site],fontSize:9,width:'fit-content'}}>{SITES.find(s=>s.id===e.site)?.code}</span>
+              <div style={{paddingRight:12}}><Taux v={e.taux_libre} h={5}/></div>
+              <div><Taux v={Math.min(charge,100)} h={5} color={charge>80?'#C03626':charge>50?'#C07B1B':'#1A7A4A'}/><span style={{fontSize:9,color:'#605e5c'}}>{charge}% alloué</span></div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:3}}>
+                {projs.slice(0,2).map(p=><span key={p.id} className="pill" style={{background:'#F3F2F1',color:'#605e5c',fontSize:8}}>{p.label.substring(0,12)}</span>)}
+                {projs.length===0&&<span style={{fontSize:9,color:'#1A7A4A'}}>Disponible</span>}
+              </div>
+            </div>);
+          })}
+        </div>
+        {collab&&(
+          <div className="card" style={{width:240,flexShrink:0,borderTop:'3px solid '+sc[collab.site]}}>
+            <div style={{padding:'12px 12px 8px',borderBottom:'1px solid #edebe9'}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+                <Av p={collab.p} n={collab.n} id={collab.id} size={38}/>
+                <button className="nb" onClick={()=>setSelCollab(null)} style={{color:'#979593',padding:2,alignSelf:'flex-start'}}><i className="ti ti-x" style={{fontSize:13}}></i></button>
+              </div>
+              <p style={{fontSize:12,fontWeight:600}}>{collab.p} {collab.n}</p>
+              <p style={{fontSize:10,color:'#605e5c',marginBottom:5}}>{collab.post}</p>
+              <span className="pill" style={{background:sb[collab.site],color:sc[collab.site]}}>{SITES.find(s=>s.id===collab.site)?.name}</span>
+            </div>
+            <div style={{padding:'8px 12px',borderBottom:'1px solid #edebe9',display:'flex',flexDirection:'column',gap:3}}>
+              <div style={{display:'flex',gap:5}}><i className="ti ti-phone" style={{fontSize:10,color:'#979593'}}></i><span style={{fontSize:10}}>{collab.tel}</span></div>
+              <div style={{display:'flex',gap:5}}><i className="ti ti-device-mobile" style={{fontSize:10,color:'#979593'}}></i><span style={{fontSize:10}}>{collab.mobile}</span></div>
+              <div style={{display:'flex',gap:5}}><i className="ti ti-mail" style={{fontSize:10,color:'#979593'}}></i><span style={{fontSize:10,color:'#0067b8'}}>{collab.mail}</span></div>
+              <div style={{display:'flex',gap:5}}><i className="ti ti-building" style={{fontSize:10,color:'#979593'}}></i><span style={{fontSize:10}}>{collab.svc}</span></div>
+            </div>
+            <div style={{padding:'8px 12px',borderBottom:'1px solid #edebe9'}}>
+              <p style={{fontSize:9,fontWeight:600,color:'#605e5c',marginBottom:4}}>Compétences</p>
+              {collab.sk.map((s,i)=><div key={i} style={{display:'flex',gap:5,alignItems:'center',padding:'2px 0'}}>
+                <span className="pill" style={{background:CAT_B[s.cat]||'#F3F2F1',color:CAT_C[s.cat]||'#605e5c',fontSize:8}}>{s.cat}</span>
+                <span style={{fontSize:10}}>{s.lib}</span>
+              </div>)}
+            </div>
+            <div style={{padding:'8px 12px',borderBottom:'1px solid #edebe9'}}>
+              <p style={{fontSize:9,fontWeight:600,color:'#605e5c',marginBottom:5}}>Planning semaine (disponibilités)</p>
+              <div style={{display:'flex',gap:3}}>
+                {['L','M','M','J','V'].map((j,i)=>{const dispo=i<4;return(
+                  <div key={i} style={{flex:1,textAlign:'center',padding:'4px 0',background:dispo?'#E8F5EE':'#FDECEA',borderRadius:2}}>
+                    <p style={{fontSize:8,fontWeight:700,color:dispo?'#1A7A4A':'#C03626'}}>{j}</p>
+                    <p style={{fontSize:7,color:dispo?'#1A7A4A':'#C03626'}}>{dispo?'✓':'✗'}</p>
+                  </div>
+                );})}
+              </div>
+              <p style={{fontSize:8,color:'#979593',marginTop:3}}>Disponibilité : {collab.taux_libre}%</p>
+            </div>
+            <div style={{padding:'8px 12px'}}>
+              <button className="btn btn-prim" style={{width:'100%',justifyContent:'center'}}><i className="ti ti-user-check" style={{fontSize:12}}></i>Affecter à un projet</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>)}
+  </div>);
+}
+
+// ── SITES & ÉQUIPES PAGE ──
+function EquipesPage(){
+  const [selSite,setSelSite]=useState(null);
+  const [selEmp,setSelEmp]=useState(null);
+  const site=selSite?SITES.find(s=>s.id===selSite):null;
+  const sEmps=selSite?EMP.filter(e=>e.site===selSite&&!e.ext):[];
+  const sProjs=selSite?PROJECTS.filter(p=>p.site===selSite):[];
+  const emp=selEmp?EMP.find(e=>e.id===selEmp):null;
+  return(<div style={{padding:16}}>
+    <p style={{fontSize:14,fontWeight:600,marginBottom:4}}>Sites & Équipes Wooden Home</p>
+    <p style={{fontSize:11,color:'#605e5c',marginBottom:14}}>Cliquez sur un site pour voir les équipes et projets · 5 sites · 358 collaborateurs</p>
+    <div className="grid-5" style={{marginBottom:14}}>
+      {SITES.map(s=>{
+        const emps=EMP.filter(e=>e.site===s.id&&!e.ext);
+        const projs=PROJECTS.filter(p=>p.site===s.id);
+        const isSel=selSite===s.id;
+        return(<div key={s.id} className="card hov" onClick={()=>{setSelSite(isSel?null:s.id);setSelEmp(null);}}
+          style={{padding:12,borderTop:'4px solid '+sc[s.id],background:isSel?sb[s.id]:'white',outline:isSel?'1.5px solid '+sc[s.id]:'none',cursor:'pointer'}}>
+          <div style={{width:34,height:34,background:sb[s.id],borderRadius:3,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:8}}>
+            <i className={`ti ${s.id==='lille'?'ti-building':'ti-building-factory-2'}`} style={{fontSize:18,color:sc[s.id]}}></i>
+          </div>
+          <p style={{fontSize:13,fontWeight:700,color:sc[s.id]}}>{s.name}</p>
+          <p style={{fontSize:9,color:'#605e5c',marginBottom:7}}>{s.sub} · {s.code}</p>
+          <div style={{display:'flex',justifyContent:'space-between',paddingTop:7,borderTop:'1px solid #edebe9'}}>
+            <div style={{textAlign:'center'}}><p style={{fontSize:16,fontWeight:600,color:sc[s.id]}}>{s.nb_collabs}</p><p style={{fontSize:8,color:'#979593'}}>collabs</p></div>
+            <div style={{textAlign:'center'}}><p style={{fontSize:16,fontWeight:600,color:'#C07B1B'}}>{projs.filter(p=>p.statut==='En cours').length}</p><p style={{fontSize:8,color:'#979593'}}>actifs</p></div>
+            <div style={{textAlign:'center'}}><p style={{fontSize:16,fontWeight:600,color:'#605e5c'}}>{projs.length}</p><p style={{fontSize:8,color:'#979593'}}>projets</p></div>
+          </div>
+          <div style={{display:'flex',gap:-3,marginTop:7,overflow:'hidden'}}>
+            {emps.slice(0,5).map(e=><div key={e.id} title={e.p+' '+e.n} style={{width:20,height:20,borderRadius:'50%',background:avc(e.id),display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,fontWeight:700,color:'white',border:'1.5px solid white'}}>{(e.p[0]||'')}{(e.n[0]||'')}</div>)}
+            {emps.length>5&&<div style={{width:20,height:20,borderRadius:'50%',background:'#edebe9',display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,color:'#605e5c',border:'1.5px solid white'}}>+{emps.length-5}</div>}
+          </div>
+        </div>);
+      })}
+    </div>
+    {site&&(<div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
+      <div style={{flex:1}}>
+        {/* Fiche site */}
+        <div className="card" style={{padding:14,marginBottom:10,borderTop:'3px solid '+sc[site.id]}}>
+          <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:10}}>
+            <div style={{width:44,height:44,background:sb[site.id],borderRadius:3,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <i className={`ti ${site.id==='lille'?'ti-building':'ti-building-factory-2'}`} style={{fontSize:22,color:sc[site.id]}}></i>
+            </div>
+            <div style={{flex:1}}>
+              <h2 style={{fontSize:16,fontWeight:600,color:sc[site.id]}}>{site.name}</h2>
+              <p style={{fontSize:10,color:'#605e5c'}}>{site.sub} · {site.region}</p>
+            </div>
+            <button onClick={()=>{setSelSite(null);setSelEmp(null);}} className="btn btn-sec">✕ Fermer</button>
+          </div>
+          <div style={{display:'flex',gap:16,flexWrap:'wrap',paddingTop:10,borderTop:'1px solid #edebe9'}}>
+            {[['ti-map-pin',site.adresse+', '+site.cp+' '+site.ville,'Adresse'],['ti-phone',site.tel,'Téléphone'],['ti-users',site.nb_collabs+' collaborateurs','Effectifs'],['ti-circle-check',site.statut,'Statut']].map(([ic,v,l])=>(
+              <div key={l} style={{display:'flex',gap:6,alignItems:'center'}}>
+                <i className={'ti '+ic} style={{fontSize:13,color:sc[site.id],flexShrink:0}}></i>
+                <div><p style={{fontSize:8,color:'#979593'}}>{l}</p><p style={{fontSize:11,fontWeight:500}}>{v}</p></div>
+              </div>
+            ))}
+          </div>
+          <div style={{marginTop:10}}>
+            <p style={{fontSize:10,fontWeight:600,color:'#605e5c',marginBottom:5}}>Services ({site.svcs.length})</p>
+            <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+              {site.svcs.map(sv=><span key={sv} className="pill" style={{background:sb[site.id],color:sc[site.id]}}>{sv}</span>)}
+            </div>
+          </div>
+        </div>
+        {/* Équipe par service */}
+        {[...new Set(sEmps.map(e=>e.svc))].map(svc=>{
+          const svEmps=sEmps.filter(e=>e.svc===svc);
+          return(<div key={svc} className="card" style={{padding:12,marginBottom:7,borderLeft:'3px solid '+sc[site.id]}}>
+            <p style={{fontSize:12,fontWeight:600,marginBottom:7}}>{svc} <span style={{fontSize:10,color:'#979593',fontWeight:400}}>({svEmps.length})</span></p>
+            <div className="grid-2">
+              {svEmps.map(e=>(
+                <div key={e.id} className="hov" onClick={()=>setSelEmp(selEmp===e.id?null:e.id)} style={{display:'flex',gap:6,padding:'7px 9px',background:selEmp===e.id?sb[e.site]:'#F3F2F1',borderRadius:2,cursor:'pointer',border:selEmp===e.id?'1px solid '+sc[e.site]:'1px solid transparent'}}>
+                  <Av p={e.p} n={e.n} id={e.id} size={24} statut={e.statut}/>
+                  <div style={{minWidth:0}}>
+                    <p style={{fontSize:10,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.p} {e.n}</p>
+                    <p style={{fontSize:8,color:'#979593'}}>{e.post.substring(0,20)}</p>
+                    <StatBadge statut={e.statut}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>);
+        })}
+      </div>
+      <div style={{width:260,flexShrink:0}}>
+        {/* Projets du site */}
+        <p style={{fontSize:11,fontWeight:600,color:'#605e5c',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.5px'}}>Projets ({sProjs.length})</p>
+        {sProjs.map(p=>(
+          <div key={p.id} className="card" style={{padding:10,marginBottom:7,borderTop:'2px solid '+(FAM_C[p.famille]||'#605e5c')}}>
+            <p style={{fontSize:11,fontWeight:600,lineHeight:1.3,marginBottom:4}}>{p.label}</p>
+            <div style={{display:'flex',gap:4,marginBottom:5,flexWrap:'wrap'}}>
+              <StatBadge statut={p.statut}/>
+              <span style={{fontSize:9,color:'#605e5c'}}>{p.fin}</span>
+            </div>
+            <Taux v={p.pct} h={4} color={FAM_C[p.famille]||'#605e5c'}/>
+          </div>
+        ))}
+        {/* Fiche collaborateur */}
+        {emp&&(
+          <div className="card" style={{padding:0,borderTop:'3px solid '+sc[emp.site],marginTop:10}}>
+            <div style={{padding:'10px 12px',borderBottom:'1px solid #edebe9',display:'flex',gap:7,alignItems:'center'}}>
+              <Av p={emp.p} n={emp.n} id={emp.id} size={28} statut={emp.statut}/>
+              <div style={{flex:1}}>
+                <p style={{fontSize:12,fontWeight:600}}>{emp.p} {emp.n}</p>
+                <p style={{fontSize:9,color:'#605e5c'}}>{emp.post}</p>
+              </div>
+              <button className="nb" onClick={()=>setSelEmp(null)} style={{color:'#979593',padding:2}}><i className="ti ti-x" style={{fontSize:12}}></i></button>
+            </div>
+            <div style={{padding:'8px 12px',borderBottom:'1px solid #edebe9',display:'flex',flexDirection:'column',gap:4}}>
+              <p style={{fontSize:9,fontWeight:600,color:'#605e5c',marginBottom:2,textTransform:'uppercase',letterSpacing:'0.5px'}}>Informations de contact</p>
+              <div style={{display:'flex',gap:5}}><i className="ti ti-phone" style={{fontSize:10,color:'#1A7A4A'}}></i><span style={{fontSize:10,fontWeight:500}}>{emp.tel}</span></div>
+              <div style={{display:'flex',gap:5}}><i className="ti ti-device-mobile" style={{fontSize:10,color:'#0F5BA1'}}></i><span style={{fontSize:10,fontWeight:500}}>{emp.mobile}</span></div>
+              <div style={{display:'flex',gap:5}}><i className="ti ti-mail" style={{fontSize:10,color:'#979593'}}></i><span style={{fontSize:10,color:'#0067b8'}}>{emp.mail}</span></div>
+            </div>
+            <div style={{padding:'7px 12px'}}>
+              <p style={{fontSize:9,color:'#605e5c'}}>{emp.svc} · {SITES.find(s=>s.id===emp.site)?.name}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>)}
+  </div>);
+}
+
+// ── APP ──
+function App(){
+  const [logged,setLogged]=useState(false);
+  const [pg,setPg]=useState('home');
+  const [searchOpen,setSearchOpen]=useState(false);
+  useEffect(()=>{
+    const h=e=>{if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();setSearchOpen(true);}};
+    window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h);
+  },[]);
+  if(!logged) return <LoginPage onLogin={()=>setLogged(true)}/>;
+  return(<div>
+    <SuiteBar onSearch={()=>setSearchOpen(true)}/>
+    <Header/>
+    <Nav pg={pg} setPg={setPg}/>
+    <div style={{background:'#F3F2F1',minHeight:'calc(100vh - 142px)'}}>
+      {pg==='home'&&<HomePage setPg={setPg}/>}
+      {pg==='ged'&&<GEDPage/>}
+      {pg==='annuaire'&&<AnnuairePage/>}
+      {pg==='projets'&&<ProjetsPage/>}
+      {pg==='planning'&&<PlanningPage/>}
+      {pg==='equipes'&&<EquipesPage/>}
+    </div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
